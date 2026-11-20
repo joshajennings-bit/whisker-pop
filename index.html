@@ -194,9 +194,9 @@ input[type=text]{font:inherit;font-family:var(--f-d);font-weight:800;font-size:2
 <style>html,body{margin:0;overscroll-behavior:none;touch-action:manipulation}
 body{position:fixed;inset:0;width:100%;height:auto}
 #app{position:absolute;inset:0;height:auto;max-width:none}
-.screen{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}
-.modal{padding-top:calc(14px + env(safe-area-inset-top));padding-bottom:calc(14px + env(safe-area-inset-bottom))}
-.toast{bottom:calc(90px + env(safe-area-inset-bottom))}</style></head><body>
+.screen{padding-top:env(safe-area-inset-top)}
+.modal{padding-top:calc(14px + env(safe-area-inset-top))}
+.ver{position:absolute;left:0;right:0;bottom:14px;margin:0!important;font-size:14px!important;opacity:.7;color:#fff;font-family:var(--f-d);font-weight:700}</style></head><body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
 <clipPath id="headclip"><ellipse cx="50" cy="58" rx="36" ry="31"/></clipPath>
 <linearGradient id="rbw" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff5d73"/><stop offset=".25" stop-color="#ffc83d"/><stop offset=".5" stop-color="#52e08f"/><stop offset=".75" stop-color="#4fb3ff"/><stop offset="1" stop-color="#b074ff"/></linearGradient>
@@ -210,6 +210,7 @@ body{position:fixed;inset:0;width:100%;height:auto}
   <h1>Whisker<br><span>Pop!</span></h1>
   <p>Match cats. Rescue kittens. Collect them all.</p>
   <button class="btn" id="playBtn" style="font-size:30px;padding:12px 44px 16px">Play</button>
+  <p class="ver">v0.001</p>
  </section>
 
  <section class="screen" id="map">
