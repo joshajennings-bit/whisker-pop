@@ -217,7 +217,7 @@ if(px<20&&sa)document.documentElement.style.setProperty('--sat','56px')}catch(e)
   <h1>Whisker<br><span>Pop!</span></h1>
   <p>Match cats. Rescue kittens. Collect them all.</p>
   <button class="btn" id="playBtn" style="font-size:30px;padding:12px 44px 16px">Play</button>
-  <p class="ver">v0.003</p>
+  <p class="ver">v0.004</p>
  </section>
 
  <section class="screen" id="map">
@@ -260,7 +260,7 @@ const today=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth
 const KEY='whiskerpop.v1';
 const DEF=()=>({name:'Cat Friend',avatar:'orange',coins:150,lives:5,regenAt:0,stars:{},best:{},unlocked:1,
  boosters:{hammer:2,shuffle:1,moves:1,rainbow:1},daily:{last:'',streak:0},gallery:{orange:1,black:1,white:1,gray:1},
- stats:{cleared:0,score:0,mega:0,played:0,won:0},set:{music:true,sfx:true,mv:.5,sv:.8,haptic:true},seen:{}});
+ stats:{cleared:0,score:0,mega:0,played:0,won:0},set:{music:true,sfx:true,mv:.5,sv:.8,haptic:true,voice:true},seen:{}});
 let S=DEF(), memSave=null;
 function load(){try{const j=localStorage.getItem(KEY);if(j){S=Object.assign(DEF(),JSON.parse(j));S.set=Object.assign(DEF().set,S.set);S.boosters=Object.assign(DEF().boosters,S.boosters)}}catch(e){if(memSave)S=memSave}}
 function save(){memSave=S;try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
@@ -288,17 +288,17 @@ function iosUnlock(){
   let t='';u.forEach(x=>t+=String.fromCharCode(x));const a=new Audio('data:audio/wav;base64,'+btoa(t));a.loop=true;a.play().catch(()=>{});A.el=a}catch(e){}}
 function wakeAudio(){if(!A.ctx){audioInit()}if(A.ctx&&A.ctx.state!=='running'){A.ctx.resume().catch(()=>{})}if(A.el&&A.el.paused)A.el.play().catch(()=>{})}
 ['touchend','pointerup','click'].forEach(ev=>document.addEventListener(ev,wakeAudio,true));
-function applyAudio(){if(!A.ctx)return;A.sfx.gain.value=S.set.sfx?S.set.sv:0;A.mus.gain.value=S.set.music?S.set.mv*.35:0}
+function applyAudio(){if(!A.ctx)return;A.sfx.gain.value=S.set.sfx?S.set.sv:0;A.mus.gain.value=S.set.music?S.set.mv*.5:0}
 document.addEventListener('visibilitychange',()=>{if(!A.ctx)return;document.hidden?A.ctx.suspend():A.ctx.resume()});
 function tone(f,d,type='sine',v=.2,t0=0,glide=null,dest){
  if(!A.ctx)return;const c=A.ctx,t=c.currentTime+t0,o=c.createOscillator(),g=c.createGain();
  o.type=type;o.frequency.setValueAtTime(f,t);if(glide)o.frequency.exponentialRampToValueAtTime(glide,t+d);
  g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(v,t+.01);g.gain.exponentialRampToValueAtTime(.001,t+d);
  o.connect(g);g.connect(dest||A.sfx);o.start(t);o.stop(t+d+.05)}
-function noiseBurst(d,fc,v=.3,t0=0,type='lowpass'){
+function noiseBurst(d,fc,v=.3,t0=0,type='lowpass',dest){
  if(!A.ctx)return;const c=A.ctx,t=c.currentTime+t0,s=c.createBufferSource(),f=c.createBiquadFilter(),g=c.createGain();
  s.buffer=A.noise;f.type=type;f.frequency.setValueAtTime(fc,t);f.frequency.exponentialRampToValueAtTime(Math.max(60,fc/6),t+d);
- g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.001,t+d);s.connect(f);f.connect(g);g.connect(A.sfx);s.start(t);s.stop(t+d+.05)}
+ g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.001,t+d);s.connect(f);f.connect(g);g.connect(dest||A.sfx);s.start(t);s.stop(t+d+.05)}
 function meow(p=1,len=.45){
  if(!A.ctx)return;const c=A.ctx,t=c.currentTime,o=c.createOscillator(),o2=c.createOscillator(),g=c.createGain(),f1=c.createBiquadFilter(),f2=c.createBiquadFilter();
  o.type='sawtooth';o2.type='triangle';const b=560*p;
@@ -333,15 +333,27 @@ const SFX={
  drop(){tone(300,.08,'sine',.12,0,150)}
 };
 function sfx(n,...a){if(!A.ctx||!S.set.sfx)return;try{SFX[n](...a)}catch(e){}}
+let VOICE=null;
+function pickVoice(){try{const en=speechSynthesis.getVoices().filter(v=>/^en/i.test(v.lang));for(const n of['Daniel','Alex','Fred','Google UK English Male','Microsoft David','Microsoft Mark','Arthur','Aaron','Gordon','Rishi','Oliver','Lee']){const v=en.find(x=>x.name.includes(n));if(v)return v}return en[0]||null}catch(e){return null}}
+function say(txt){if(!S.set.voice||!S.set.sfx||!window.speechSynthesis)return;
+ try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(txt.replace(/!/g,'').replace('Purrfect','Purr-fect').replace('Pawsome','Paw-some').replace('Meowvelous','Meow-velous').replace('MEGA KITTY','Mega Kitty'));
+  VOICE=VOICE||pickVoice();if(VOICE)u.voice=VOICE;u.pitch=.1;u.rate=.8;u.volume=Math.min(1,S.set.sv+.2);speechSynthesis.speak(u)}catch(e){}}
+try{speechSynthesis.onvoiceschanged=()=>{VOICE=pickVoice()}}catch(e){}
+addEventListener('pagehide',()=>{try{save()}catch(e){}});
 function buzz(ms){if(S.set.haptic&&navigator.vibrate){try{navigator.vibrate(ms)}catch(e){}}}
 /* ambient music: slow pentatonic pad + plucks */
 function startMusic(){clearInterval(A.timer);A.step=0;
- const chords=[[0,4,7],[-3,0,4],[-5,-1,2],[-7,-3,0]];
+ const C=261.63,roots=[0,-5,-3,-7],chords=[[0,4,7],[-5,-1,2],[-3,0,4],[-7,-3,0]],arp=[0,1,2,1,0,2,1,2],M=A.mus,hz=n=>C*Math.pow(2,n/12);
  A.timer=setInterval(()=>{if(!A.ctx||!S.set.music||A.ctx.state!=='running')return;
-  const s=A.step++,ch=chords[(s>>3)&3];
-  if(s%8===0)ch.forEach(n=>tone(nf(n,196),3.2,'sine',.16,0,null,A.mus));
-  if(s%2===0&&Math.random()<.75)tone(nf(pick(PENT)+ch[0]-12,392),.9,'triangle',.12,0,null,A.mus);
-  if(s%16===15&&Math.random()<.5)tone(nf(pick(PENT),523),1.4,'sine',.07,0,null,A.mus)},420)}
+  const s=A.step++,bar=(s>>3)&3,i=s&7,ch=chords[bar],root=roots[bar];
+  if(i===0||i===4){tone(150,.16,'sine',.34,0,48,M)}
+  if(i%2===1)noiseBurst(.04,9000,.07,0,'highpass',M);
+  if(i===2||i===6)noiseBurst(.09,3200,.1,0,'bandpass',M);
+  if([0,3,4,6].includes(i))tone(hz(root-12+(i===6?12:0)),.2,'triangle',.26,0,null,M);
+  tone(hz(ch[arp[i]]+12),.2,'triangle',.09,0,null,M);
+  if(i===0)ch.forEach(n=>tone(hz(n),.5,'sine',.05,0,null,M));
+  if(i%2===0&&Math.random()<.55){const n=pick([0,2,4,7,9,12,14,16]);tone(hz(ch[0]+n+12),.28,'sine',.08,.03,null,M);if(Math.random()<.3)tone(hz(ch[0]+n+19),.22,'sine',.04,.1,null,M)}
+ },235)}
 /* ---------- art ---------- */
 const CATS=[
  {id:'orange',name:'Marmalade',trait:'Orange tabby. Loud purr, louder opinions.',base:'#ffa040',dark:'#e0701a',iris:'#58b947',muz:'#ffe3bd',glow:'#ff9a3c'},
@@ -552,7 +564,7 @@ function beam(r1,c1,r2,c2,thick=.5){const S=G.S;const x1=(c1+.5)*S,y1=(r1+.5)*S,
 function ring(r,c,rad,color='#ff8a3c'){const S=G.S,d=rad*2*S;const e=fxEl('fxp',{left:(c+.5)*S-d/2+'px',top:(r+.5)*S-d/2+'px',width:d+'px',height:d+'px',borderRadius:'50%',border:`6px solid ${color}`,background:`radial-gradient(${color}aa,transparent 70%)`});
  e.animate([{transform:'scale(.2)',opacity:1},{transform:'scale(1)',opacity:0}],{duration:520,easing:'ease-out'}).onfinish=()=>e.remove()}
 function shake(mag=6,dur=350){const b=$('#board');b.animate([{transform:'translate(0,0)'},{transform:`translate(${mag}px,${-mag/2}px)`},{transform:`translate(${-mag}px,${mag/2}px)`},{transform:`translate(${mag/2}px,0)`},{transform:'translate(0,0)'}],{duration:dur})}
-function banner(txt,ms=1100,color){const e=document.createElement('div');e.className='banner';e.textContent=txt;if(color)e.style.textShadow=`0 5px 0 ${color},0 10px 20px rgba(0,0,0,.4)`;
+function banner(txt,ms=1100,color){say(txt);const e=document.createElement('div');e.className='banner';e.textContent=txt;if(color)e.style.textShadow=`0 5px 0 ${color},0 10px 20px rgba(0,0,0,.4)`;
  $('#board').appendChild(e);e.animate([{transform:'translate(-50%,-50%) scale(.3) rotate(-8deg)',opacity:0},{transform:'translate(-50%,-50%) scale(1.15) rotate(2deg)',opacity:1,offset:.25},{transform:'translate(-50%,-50%) scale(1)',opacity:1,offset:.75},{transform:'translate(-50%,-90%) scale(1)',opacity:0}],{duration:ms,easing:'ease-out'}).onfinish=()=>e.remove()}
 function megaFx(){banner('MEGA KITTY!',1500,'#c42b6b');shake(10,500);sfx('mega');buzz(120);
  const e=fxEl('fxp',{left:'50%',top:'50%',width:G.S*6+'px',marginLeft:-G.S*3+'px',marginTop:-G.S*3+'px'});e.innerHTML=catSVG('mega');
@@ -913,7 +925,7 @@ function openProfile(){const ok=CATS.filter(c=>S.gallery[c.id]);const cleared=Ob
  $('#nameIn').oninput=e=>{S.name=e.target.value.trim()||'Cat Friend';save()}}
 function openSettings(keep){const t=(k,l)=>`<div class="sl"><span>${l}</span><button class="tog ${S.set[k]?'on':''}" data-a="tog" data-k="${k}" aria-label="${l}"></button></div>`;
  openModal(`<h2>Settings</h2>${t('music','Music')}<div class="sl"><span>Music volume</span><input type="range" id="mv" min="0" max="1" step=".05" value="${S.set.mv}"></div>
- ${t('sfx','Sound effects')}<div class="sl"><span>Effects volume</span><input type="range" id="sv" min="0" max="1" step=".05" value="${S.set.sv}"></div>${t('haptic','Vibration')}
+ ${t('sfx','Sound effects')}<div class="sl"><span>Effects volume</span><input type="range" id="sv" min="0" max="1" step=".05" value="${S.set.sv}"></div>${t('haptic','Vibration')}${t('voice','Announcer voice')}
  ${document.documentElement.requestFullscreen?'<div class="row"><button class="btn sm ghost" id="fsBtn" style="background:#f4ead8;color:var(--ink);box-shadow:none">Toggle full screen</button></div>':''}<div class="row"><button class="btn sm ghost" id="purrT" style="background:#f4ead8;color:var(--ink);box-shadow:none">Hear a meow</button></div>
  <div class="row"><button class="btn sm" data-a="reset" data-s="0" style="background:#e9dcc3;color:var(--ink2);box-shadow:none;text-shadow:none">Erase progress</button></div><p style="font-size:12px">Progress saves automatically on this device.</p>`);
  $('#mv').oninput=e=>{S.set.mv=+e.target.value;applyAudio();save()};$('#sv').oninput=e=>{S.set.sv=+e.target.value;applyAudio();save()};$('#sv').onchange=()=>sfx('match',2);
