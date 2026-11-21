@@ -1,5 +1,5 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Whisker Pop">
 <meta name="theme-color" content="#2b2370">
@@ -196,9 +196,9 @@ html{background:linear-gradient(170deg,#2b2370,#7a4fb5 55%,#ff9d76) no-repeat fi
 html,body{margin:0;overscroll-behavior:none;touch-action:manipulation}
 body{position:fixed;top:0;left:0;right:0;bottom:0;width:100%;height:auto}
 #app{position:absolute;inset:0;height:auto;max-width:none}
-.screen{padding-top:var(--sat)}
-.modal{padding-top:calc(14px + var(--sat))}
-.ver{position:absolute;left:0;right:0;bottom:14px;margin:0!important;font-size:14px!important;opacity:.7;color:#fff;font-family:var(--f-d);font-weight:700}</style>
+#app>.screen{padding-top:var(--sat)}
+#app>.modal{padding-top:calc(14px + var(--sat))}
+.ver{margin:6px 0 0!important;font-size:14px!important;opacity:.7;color:#fff;font-family:var(--f-d);font-weight:700}</style>
 <script>document.addEventListener('DOMContentLoaded',()=>{try{const p=document.createElement('div');p.style.cssText='position:fixed;top:0;padding-top:env(safe-area-inset-top,0px);visibility:hidden';document.body.appendChild(p);
 const px=parseFloat(getComputedStyle(p).paddingTop)||0;p.remove();
 const sa=navigator.standalone===true||matchMedia('(display-mode: standalone)').matches;
@@ -217,7 +217,7 @@ if(px<20&&sa)document.documentElement.style.setProperty('--sat','56px')}catch(e)
   <h1>Whisker<br><span>Pop!</span></h1>
   <p>Match cats. Rescue kittens. Collect them all.</p>
   <button class="btn" id="playBtn" style="font-size:30px;padding:12px 44px 16px">Play</button>
-  <p class="ver">v0.002</p>
+  <p class="ver">v0.003</p>
  </section>
 
  <section class="screen" id="map">
