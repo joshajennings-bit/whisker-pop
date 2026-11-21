@@ -210,11 +210,14 @@ input[type=text]{font:inherit;font-family:var(--f-d);font-weight:800;font-size:2
 @keyframes rbp{50%{transform:scale(1.14) rotate(5deg)}}
 .pc.sp-rainbow svg{animation:rbh 2.4s linear infinite}
 @keyframes rbh{to{filter:hue-rotate(360deg) drop-shadow(0 0 7px #fff)}}
+.swp{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:4px 0 8px}
+.sw{width:40px;height:40px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 2px #cfc3ac;font-family:var(--f-d);font-weight:800;font-size:12px;color:var(--ink);background:#f4ead8}
+.sw.on{box-shadow:0 0 0 4px var(--coral)}
 @media(max-height:640px){.goals{padding:4px}.boosters{padding-bottom:6px}.bst{width:60px}.hud{padding-top:4px}}
 @media(prefers-reduced-motion:reduce){*{animation-duration:.01s!important;animation-iteration-count:1!important}}
 </style>
 <style>:root{--sat:env(safe-area-inset-top,0px)}
-html{background:linear-gradient(170deg,#2b2370,#7a4fb5 55%,#ff9d76) no-repeat fixed;height:100%}
+html{background:linear-gradient(170deg,var(--bg1),var(--bg2) 55%,var(--bg3)) no-repeat fixed;height:100%}
 html,body{margin:0;overscroll-behavior:none;touch-action:manipulation}
 body{position:fixed;top:0;left:0;right:0;bottom:0;width:100%;height:auto}
 #app{position:absolute;inset:0;height:auto;max-width:none}
@@ -239,7 +242,7 @@ if(px<20&&sa)document.documentElement.style.setProperty('--sat','56px')}catch(e)
   <h1>Whisker<br><span>Pop!</span></h1>
   <p>Match cats. Rescue kittens. Collect them all.</p>
   <button class="btn" id="playBtn" style="font-size:30px;padding:12px 44px 16px">Play</button>
-  <p class="ver">v0.009</p>
+  <p class="ver">v0.010</p>
  </section>
 
  <section class="screen" id="map">
@@ -282,7 +285,7 @@ const today=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth
 const KEY='whiskerpop.v1';
 const DEF=()=>({name:'Cat Friend',avatar:'orange',coins:150,lives:5,regenAt:0,stars:{},best:{},unlocked:1,
  boosters:{hammer:2,shuffle:1,moves:1,rainbow:1},daily:{last:'',streak:0},gallery:{orange:1,black:1,white:1,gray:1},
- stats:{cleared:0,score:0,mega:0,played:0,won:0},set:{music:true,sfx:true,mv:.5,sv:.8,haptic:true,voice:true},seen:{}});
+ stats:{cleared:0,score:0,mega:0,played:0,won:0},set:{music:true,sfx:true,mv:.5,sv:.8,haptic:true,voice:true,theme:'auto'},seen:{}});
 let S=DEF(), memSave=null;
 function load(){try{const j=localStorage.getItem(KEY);if(j){S=Object.assign(DEF(),JSON.parse(j));S.set=Object.assign(DEF().set,S.set);S.boosters=Object.assign(DEF().boosters,S.boosters)}}catch(e){if(memSave)S=memSave}}
 function save(){memSave=S;try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
@@ -861,7 +864,7 @@ function startLevel(n){
  drawFloors();drawGoals();drawBar();drawBoosters();
  $('#lvlName').innerHTML=(L.ch?'Challenge ':'Level ')+n+`<small>${L.ch?'Bonus rewards':(MILES[Math.ceil(n/5)*5]||'')}</small>`;
  $('#score').dataset.v=0;$('#score').textContent='0';
- show('game');layout();
+ applyTheme(n);show('game');layout();
  if(!findMove()||findGroups().length)shuffleBoard(true);
  updateHUD();G.busy=false;armHint();
  if(L.tip&&!S.seen['t'+n]){S.seen['t'+n]=1;save();tutor(L.tip)}}
@@ -906,8 +909,14 @@ function confetti(){const cols=['#ff6b57','#ffc83d','#43cfa5','#5ab4ff','#ff8fb1
   Object.assign(e.style,{left:Math.random()*100+'%',top:'-20px',width:s+'px',height:s*1.6+'px',background:pick(cols),zIndex:70,borderRadius:'2px'});app.appendChild(e);
   e.animate([{transform:'translateY(0) rotate(0)',opacity:1},{transform:`translate(${(Math.random()-.5)*160}px,${app.clientHeight+40}px) rotate(${Math.random()*900}deg)`,opacity:1}],{duration:1800+Math.random()*1800,delay:Math.random()*600,easing:'cubic-bezier(.3,.5,.6,1)'}).onfinish=()=>e.remove()}}
 /* ---------- screens & modals ---------- */
+const THEMES=[['Dusk','#2b2370','#7a4fb5','#ff9d76'],['Ocean','#0b3d6b','#1b7fb8','#6fe0d2'],['Mint Garden','#145a4a','#2fa37a','#c8f27a'],['Cotton Candy','#6b2a7a','#d45fa8','#ffc2d9'],['Sunset','#5a1f4a','#e0525a','#ffc15a'],['Midnight','#0e1b3d','#2b3f8f','#5a7be0'],['Lavender','#3d2a7a','#8a6bd6','#e0c6ff'],['Sunny Window','#7a3b12','#e8923a','#ffe08a']];
+function applyTheme(n){const auto=S.set.theme===undefined||S.set.theme==='auto';
+ const i=auto?Math.floor(((n||S.unlocked||1)-1)/5)%THEMES.length:(+S.set.theme%THEMES.length);const t=THEMES[i],r=document.documentElement.style;
+ r.setProperty('--bg1',t[1]);r.setProperty('--bg2',t[2]);r.setProperty('--bg3',t[3])}
+function themeSwatches(){const a=S.set.theme===undefined||S.set.theme==='auto';
+ return `<button class="sw auto ${a?'on':''}" data-a="theme" data-i="auto" aria-label="Automatic">Auto</button>`+THEMES.map((t,i)=>`<button class="sw ${!a&&+S.set.theme===i?'on':''}" data-a="theme" data-i="${i}" aria-label="${t[0]}" style="background:linear-gradient(160deg,${t[1]},${t[2]} 55%,${t[3]})"></button>`).join('')}
 function show(name){$$('.screen').forEach(s=>{if(s.id!==name){s.classList.remove('vis','on')}});const s=$('#'+name);s.classList.add('on');requestAnimationFrame(()=>s.classList.add('vis'));
- if(name==='map')renderMap();if(name!=='game'){clearHint()}}
+ if(name==='map'){applyTheme();renderMap()}if(name!=='game'){clearHint()}}
 function openModal(html,o={}){const sh=$('#sheet');
  sh.innerHTML=(o.noClose?'':'<button class="x" data-a="close" aria-label="Close">✕</button>')+html;$('#modal').classList.add('on');sh.scrollTop=0}
 function closeModal(){$('#modal').classList.remove('on')}
@@ -926,6 +935,7 @@ const ACT={
  refill(){if(S.coins<100){toast('Not enough coins');return}tickLives();if(S.lives>=MAXL){toast('Lives are already full');return}S.coins-=100;S.lives=MAXL;S.regenAt=0;save();sfx('coin');updateTop();closeModal();toast('Lives refilled!')},
  tog(b){const k=b.dataset.k;S.set[k]=!S.set[k];save();applyAudio();openSettings(true)},
  reset(b){if(b.dataset.s!=='1'){b.dataset.s='1';b.textContent='Tap again to erase everything';return}S=DEF();save();closeModal();updateTop();show('map')},
+ theme(b){S.set.theme=b.dataset.i;save();applyTheme(G&&$('#game').classList.contains('on')?G.n:S.unlocked);openSettings()},
  av(b){S.avatar=b.dataset.id;save();updateTop();openProfile()},
  cat(b){const id=b.dataset.id;if(S.gallery[id]){meow(.8+Math.random()*.7);purr(.8);const s=b.querySelector('svg');s.animate([{transform:'rotate(0)'},{transform:'rotate(-10deg) scale(1.1)'},{transform:'rotate(8deg)'},{transform:'rotate(0)'}],{duration:500})}else toast('Locked: '+(catById(id).unlock||'Play to find them'))}
 };
@@ -995,7 +1005,7 @@ function openProfile(){const ok=CATS.filter(c=>S.gallery[c.id]);const cleared=Ob
 function openSettings(keep){const t=(k,l)=>`<div class="sl"><span>${l}</span><button class="tog ${S.set[k]?'on':''}" data-a="tog" data-k="${k}" aria-label="${l}"></button></div>`;
  openModal(`<h2>Settings</h2>${t('music','Music')}<div class="sl"><span>Music volume</span><input type="range" id="mv" min="0" max="1" step=".05" value="${S.set.mv}"></div>
  ${t('sfx','Sound effects')}<div class="sl"><span>Effects volume</span><input type="range" id="sv" min="0" max="1" step=".05" value="${S.set.sv}"></div>${t('haptic','Vibration')}${t('voice','Announcer voice')}
- ${document.documentElement.requestFullscreen?'<div class="row"><button class="btn sm ghost" id="fsBtn" style="background:#f4ead8;color:var(--ink);box-shadow:none">Toggle full screen</button></div>':''}<div class="row"><button class="btn sm ghost" id="purrT" style="background:#f4ead8;color:var(--ink);box-shadow:none">Hear a meow</button></div>
+ <h3>Background</h3><div class="swp">${themeSwatches()}</div>${document.documentElement.requestFullscreen?'<div class="row"><button class="btn sm ghost" id="fsBtn" style="background:#f4ead8;color:var(--ink);box-shadow:none">Toggle full screen</button></div>':''}<div class="row"><button class="btn sm ghost" id="purrT" style="background:#f4ead8;color:var(--ink);box-shadow:none">Hear a meow</button></div>
  <div class="row"><button class="btn sm" data-a="reset" data-s="0" style="background:#e9dcc3;color:var(--ink2);box-shadow:none;text-shadow:none">Erase progress</button></div><p style="font-size:12px">Progress saves automatically on this device.</p>`);
  $('#mv').oninput=e=>{S.set.mv=+e.target.value;applyAudio();save()};$('#sv').oninput=e=>{S.set.sv=+e.target.value;applyAudio();save()};$('#sv').onchange=()=>sfx('match',2);
  if($('#fsBtn'))$('#fsBtn').onclick=()=>{try{document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen().catch(()=>toast('Full screen is blocked here. Open the file directly.'))}catch(e){}};
@@ -1018,7 +1028,7 @@ function openPause(){if(!G||G.busy&&G.ended)return;
 function drawIcons(){$('#setBtn').innerHTML=ICON.gear;$('#pauseBtn').innerHTML=ICON.pause;
  $('#navGal').innerHTML=ICON.gal+'Cats';$('#navDaily').innerHTML=ICON.gift+'Daily';$('#navShop').innerHTML=ICON.shop+'Shop';$('#navProf').innerHTML=ICON.prof+'Profile';
  $('#heroCats').innerHTML=['orange','black','calico','white','siamese'].map(catSVG).join('')}
-function boot(){load();tickLives();drawIcons();updateTop();show('title');
+function boot(){load();tickLives();drawIcons();applyTheme();updateTop();show('title');
  $('#playBtn').onclick=()=>{audioInit();sfx('click');meow(1);show('map');if(S.daily.last!==today())setTimeout(openDaily,500)};
  $('#avBtn').onclick=()=>{sfx('click');openProfile()};$('#setBtn').onclick=()=>{sfx('click');openSettings()};
  $('#navGal').onclick=()=>{sfx('click');openGallery()};$('#navDaily').onclick=()=>{sfx('click');openDaily()};$('#navShop').onclick=()=>{sfx('click');openShop()};$('#navProf').onclick=()=>{sfx('click');openProfile()};
