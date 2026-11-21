@@ -100,14 +100,15 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--gold);outline-o
 .goal.bump{animation:bump .3s}
 @keyframes bump{50%{transform:scale(1.18)}}
 .boardwrap{flex:1;display:grid;place-items:center;min-height:0;padding:4px 8px}
-#board{position:relative;border-radius:14px;background:#26335a;padding:0;touch-action:none;overflow:hidden}
-#board::before{content:'';position:absolute;inset:-11px;border-radius:26px;z-index:-1;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='46' height='46' viewBox='0 0 46 46'%3E%3Cg fill='%23ffffff' fill-opacity='.07' transform='rotate(-18 23 23)'%3E%3Cellipse cx='23' cy='29' rx='6.5' ry='5.5'/%3E%3Cellipse cx='14' cy='22' rx='2.8' ry='3.6'/%3E%3Cellipse cx='19.5' cy='15' rx='2.8' ry='3.8'/%3E%3Cellipse cx='26.5' cy='15' rx='2.8' ry='3.8'/%3E%3Cellipse cx='32' cy='22' rx='2.8' ry='3.6'/%3E%3C/g%3E%3C/svg%3E"),linear-gradient(160deg,#4c5f8f,#2f3d66 55%,#232e52);box-shadow:0 8px 0 rgba(15,20,50,.5),0 18px 30px rgba(8,6,35,.5),inset 0 0 0 3px rgba(190,205,240,.35),inset 0 3px 0 4px rgba(255,255,255,.12)}
+#board{position:relative;padding:0;touch-action:none;overflow:visible}
+#cellsbg{filter:drop-shadow(0 6px 0 rgba(20,25,70,.28)) drop-shadow(0 12px 18px rgba(10,8,45,.4))}
+#cellsbg .cell{padding:0}
 #cellsbg,#cells,#pieces,#fx{position:absolute;inset:0}#cells{pointer-events:none;z-index:2}
 #fx{pointer-events:none;z-index:5;overflow:visible}
 #board{overflow:visible}
 .cell{position:absolute;width:var(--s);height:var(--s);padding:2px}
 .cell i{display:block;width:100%;height:100%;border-radius:12px;background:transparent;position:relative;overflow:hidden}
-#cellsbg .cell i{background:#dde6f3;box-shadow:inset 0 2px 0 rgba(255,255,255,.75),inset 0 -3px 0 rgba(70,95,140,.18)}#cellsbg .cell.alt i{background:#cdd9ec}
+#cellsbg .cell i{background:#d9e2f2;box-shadow:none}#cellsbg .cell.alt i{background:#cbd7ec}
 .cell .fl{position:absolute;inset:0}.cell.f-paw i{background:rgba(255,120,170,.2);box-shadow:inset 0 0 0 3px rgba(255,110,165,.7)}.cell.f-yarn i{background:rgba(60,200,170,.16);box-shadow:inset 0 0 0 3px rgba(50,190,160,.75)}.cell.f-yarn.h2 i{background:rgba(70,150,245,.2);box-shadow:inset 0 0 0 3px rgba(60,140,240,.85)}.cell.gone i{animation:gone .35s forwards}@keyframes gone{to{opacity:0;transform:scale(1.3)}}
 .cell .fl svg{width:100%;height:100%}
 .pc{position:absolute;left:0;top:0;width:var(--s);height:var(--s);padding:calc(var(--s)*.05);transition:transform .18s ease;will-change:transform;pointer-events:none}
@@ -243,7 +244,7 @@ if(px<20&&sa)document.documentElement.style.setProperty('--sat','56px')}catch(e)
   <h1>Whisker<br><span>Pop!</span></h1>
   <p>Match cats. Rescue kittens. Collect them all.</p>
   <button class="btn" id="playBtn" style="font-size:30px;padding:12px 44px 16px">Play</button>
-  <p class="ver">v0.011</p>
+  <p class="ver">v0.012</p>
  </section>
 
  <section class="screen" id="map">
@@ -555,12 +556,25 @@ const LV=[
  {m:30,n:6,ch:1,o:[{k:'yarn'},{k:'rescue'},{k:'fish',n:3}],f:[{k:'yarn',hp:2,p:'ring2'}],b:{n:5,hp:2,kit:5},d:{fish:3}}
 ];
 const MAXLV=300;
+
+const SHAPES={
+ full:['########','########','########','########','########','########','########','########'],
+ octagon:['..####..','.######.','########','########','########','########','.######.','..####..'],
+ plus:['..####..','..####..','########','########','########','########','..####..','..####..'],
+ cat:['##....##','###..###','########','########','########','########','.######.','..####..'],
+ heart:['.##..##.','########','########','########','.######.','..####..','...##...','...##...'],
+ hourglass:['########','.######.','..####..','...##...','...##...','..####..','.######.','########'],
+ ring:['########','########','##....##','##....##','##....##','##....##','########','########'],
+ tri:['...##...','..####..','..####..','.######.','.######.','########','########','########']};
+const SH=['full','full','full','octagon','full','plus','full','octagon','cat','hourglass','tri','heart','full','ring','cat','plus','octagon','full','hourglass','heart','ring','tri','cat','plus'];
+const SHPOOL=['full','octagon','plus','cat','heart','hourglass','ring','tri'];
+function maskOf(n){return (SHAPES[n]||SHAPES.full).map(row=>[...row].map(ch=>ch==='#'))}
 function getLevel(n){
  let L;
- if(n<=LV.length)L=JSON.parse(JSON.stringify(LV[n-1]));
+ if(n<=LV.length){L=JSON.parse(JSON.stringify(LV[n-1]));L.sh=SH[n-1]}
  else{
   const r=mulberry(n*7919),k=n%8,ch=n%5===0,n5=r()<.5?5:6;
-  L={m:26+Math.floor(r()*8),n:n5,ch:ch?1:0,o:[]};
+  L={m:26+Math.floor(r()*8),n:n5,ch:ch?1:0,o:[]};L.sh=SHPOOL[Math.floor(r()*8)];
   const pats=['center','checker','x','ring2','rows3','border','corners','bottom'];
   const P=()=>pats[Math.floor(r()*pats.length)];
   const cat=BOARD[Math.floor(r()*n5)];
@@ -595,7 +609,7 @@ const isCat=p=>p&&p.kind==='cat';
 const plain=p=>isCat(p)&&!p.sp;
 const matchable=p=>isCat(p)&&p.sp!=='rainbow';
 function layout(){
- if(!G)return;const bw=$('#bw');const S=Math.floor(Math.min((bw.clientWidth-34)/N,(bw.clientHeight-28)/N));
+ if(!G)return;const bw=$('#bw');const S=Math.floor(Math.min((bw.clientWidth-16)/N,(bw.clientHeight-14)/N));
  G.S=Math.max(28,S);const b=$('#board');b.style.width=b.style.height=(G.S*N)+'px';b.style.setProperty('--s',G.S+'px');
  $$('#board .cell').forEach(e=>{e.style.transform=`translate(${e.dataset.c*G.S}px,${e.dataset.r*G.S}px)`});
  for(let r=0;r<N;r++)for(let c=0;c<N;c++){const p=G.board[r][c];if(p)place(p,r,c,0)}}
@@ -617,7 +631,10 @@ function floorHTML(f){if(f.k==='paw')return `<div class="fl" style="color:#e0568
 function yarnTangle(n){const col=n>1?'#3fa9f5':'#43cfa5';return `<svg viewBox="0 0 100 100" fill="none" stroke="${col}" stroke-width="${n>1?6:4.5}" stroke-linecap="round"><path d="M10 30Q50 0 90 28Q60 52 14 60Q56 88 90 70M20 90Q50 50 88 88M8 55Q50 30 92 52"/>${n>1?'<path d="M30 10Q70 40 40 92M70 8Q30 50 80 94"/>':''}</svg>`}
 function mkCell(parent,r,c,alt){const d=document.createElement('div');d.className='cell'+(alt&&(r+c)%2?' alt':'');d.dataset.r=r;d.dataset.c=c;d.innerHTML='<i></i>';parent.appendChild(d);return d}
 function drawFloors(){const bg=$('#cellsbg'),fl=$('#cells');bg.innerHTML='';fl.innerHTML='';
- for(let r=0;r<N;r++)for(let c=0;c<N;c++){mkCell(bg,r,c,true);if(G.floor[r][c])setFloor(r,c)}}
+ const a=(r,c)=>inb(r,c)&&G.mask[r][c],R=16;
+ for(let r=0;r<N;r++)for(let c=0;c<N;c++){if(!G.mask[r][c])continue;const d=mkCell(bg,r,c,true);
+  d.firstChild.style.borderRadius=[!a(r-1,c)&&!a(r,c-1),!a(r-1,c)&&!a(r,c+1),!a(r+1,c)&&!a(r,c+1),!a(r+1,c)&&!a(r,c-1)].map(x=>x?R+'px':'0').join(' ');
+  if(G.floor[r][c])setFloor(r,c)}}
 function setFloor(r,c){const f=G.floor[r][c];let d=$(`#cells .cell[data-r="${r}"][data-c="${c}"]`);
  if(!f){if(d){d.classList.add('gone');setTimeout(()=>d.remove(),360)}return}
  if(!d)d=mkCell($('#cells'),r,c,false);d.className='cell f-'+f.k+(f.hp>1?' h2':'');d.firstChild.innerHTML=floorHTML(f);
@@ -768,15 +785,21 @@ function spawnFn(){return function(){
  return newCat(G.types[rnd(G.types.length)])}}
 function fall(){
  const B=G.board;let maxd=0;G.pending={};
- for(let c=0;c<N;c++){let w=N-1;
-  for(let r=N-1;r>=0;r--){const p=B[r][c];if(!p)continue;if(r!==w){B[w][c]=p;B[r][c]=null;const d=w-r;place(p,w,c,.1+.06*d,'cubic-bezier(.4,0,.8,1)');maxd=Math.max(maxd,d)}w--}
-  const n=w+1;for(let i=w;i>=0;i--){const p=G.spawn();const e=mkEl(p);place(p,i-n-.2,c,0);B[i][c]=p;void e.offsetWidth;place(p,i,c,.1+.06*n,'cubic-bezier(.4,0,.8,1)');maxd=Math.max(maxd,n)}}
+ for(let c=0;c<N;c++){let r0=0;
+  while(r0<N){if(!G.mask[r0][c]){r0++;continue}let r1=r0;while(r1+1<N&&G.mask[r1+1][c])r1++;
+   let w=r1;
+   for(let r=r1;r>=r0;r--){const p=B[r][c];if(!p)continue;if(r!==w){B[w][c]=p;B[r][c]=null;const d=w-r;place(p,w,c,.1+.06*d,'cubic-bezier(.4,0,.8,1)');maxd=Math.max(maxd,d)}w--}
+   const n=w-r0+1;
+   for(let i=w;i>=r0;i--){const p=G.spawn();const e=mkEl(p);place(p,i-n-.2,c,0);B[i][c]=p;if(r0>0)e.style.opacity=0;void e.offsetWidth;
+    place(p,i,c,.1+.06*n,'cubic-bezier(.4,0,.8,1)');if(r0>0){e.style.transition+=',opacity .2s';e.style.opacity=1}maxd=Math.max(maxd,n)}
+   r0=r1+1}}
  return maxd}
 function collectItems(){let got=false;
- for(let c=0;c<N;c++){const p=G.board[N-1][c];if(p&&p.kind==='item'){got=true;G.board[N-1][c]=null;
-  const o=G.goals.find(o=>o.k===p.t);if(o){o.have++;updateGoals(G.goals.indexOf(o))}
-  floatText(N-1,c,'Got it!',22);burst(N-1,c,'#ffd23f',12,1.3);sfx('coin');addScore(250);
-  p.el.classList.add('pop');setTimeout(()=>p.el.remove(),320)}}
+ for(let r=0;r<N;r++)for(let c=0;c<N;c++){if(!G.mask[r][c]||(inb(r+1,c)&&G.mask[r+1][c]))continue;const p=G.board[r][c];
+  if(p&&p.kind==='item'){got=true;G.board[r][c]=null;
+   const o=G.goals.find(o=>o.k===p.t);if(o){o.have++;updateGoals(G.goals.indexOf(o))}
+   floatText(r,c,'Got it!',22);burst(r,c,'#ffd23f',12,1.3);sfx('coin');addScore(250);
+   p.el.classList.add('pop');setTimeout(()=>p.el.remove(),320)}}
  return got}
 async function settle(){
  while(true){const d=fall();if(d){await sleep(100+60*d+40);sfx('drop')}
@@ -850,18 +873,18 @@ function drawBoosters(){const d=$('#boosters');d.innerHTML='';
 function startLevel(n){
  const L=getLevel(n);const rng=mulberry(Date.now()&0xffff);
  G={L,n,S:40,board:[...Array(N)].map(()=>Array(N).fill(null)),floor:[...Array(N)].map(()=>Array(N).fill(null)),moves:L.m,score:0,types:BOARD.slice(0,L.n),sel:null,busy:true,ended:false,goals:[],pending:{},armed:null,hammer:false,zoomed:false,startCoins:S.coins};
- G.spawn=spawnFn();
- (L.f||[]).forEach(f=>pattern(f.p,rng).forEach(([r,c])=>{if(!G.floor[r][c])G.floor[r][c]={k:f.k,hp:f.hp}}));
+ G.spawn=spawnFn();G.mask=maskOf(L.sh);
+ (L.f||[]).forEach(f=>pattern(f.p,rng).forEach(([r,c])=>{if(G.mask[r][c]&&!G.floor[r][c])G.floor[r][c]={k:f.k,hp:f.hp}}));
  const fcount=k=>G.floor.flat().filter(f=>f&&f.k===k).length;
+ let boxCells=[];if(L.b){boxCells=pattern('scatter',rng,L.b.n*4).filter(([r,c])=>r>=1&&G.mask[r][c]).slice(0,L.b.n);L.b.n=boxCells.length;L.b.kit=Math.min(L.b.kit||0,boxCells.length)}
  L.o.forEach(o=>{const g={k:o.k,t:o.t,n:o.n,have:0};
   if(o.k==='yarn'||o.k==='paw')g.n=fcount(o.k);
   if(o.k==='box')g.n=L.b.n;if(o.k==='rescue')g.n=L.b.kit;G.goals.push(g)});
  // initial fill, no starting matches
- for(let r=0;r<N;r++)for(let c=0;c<N;c++){let t,tries=0;do{t=G.types[rnd(G.types.length)];tries++}while(tries<30&&((c>=2&&G.board[r][c-1]?.t===t&&G.board[r][c-2]?.t===t)||(r>=2&&G.board[r-1][c]?.t===t&&G.board[r-2][c]?.t===t)));G.board[r][c]=newCat(t)}
- if(L.b){const cells=pattern('scatter',rng,L.b.n).filter(([r])=>r>=1);let i=0;
-  for(const[r,c]of cells){G.board[r][c]={id:_id++,kind:'box',hp:L.b.hp,kit:i<(L.b.kit||0)};i++}}
+ for(let r=0;r<N;r++)for(let c=0;c<N;c++){if(!G.mask[r][c])continue;let t,tries=0;do{t=G.types[rnd(G.types.length)];tries++}while(tries<30&&((c>=2&&G.board[r][c-1]?.t===t&&G.board[r][c-2]?.t===t)||(r>=2&&G.board[r-1][c]?.t===t&&G.board[r-2][c]?.t===t)));G.board[r][c]=newCat(t)}
+ if(L.b){let i=0;for(const[r,c]of boxCells){G.board[r][c]={id:_id++,kind:'box',hp:L.b.hp,kit:i<(L.b.kit||0)};i++}}
  $('#pieces').innerHTML='';$('#fx').innerHTML='';
- for(let r=0;r<N;r++)for(let c=0;c<N;c++){mkEl(G.board[r][c])}
+ for(let r=0;r<N;r++)for(let c=0;c<N;c++){if(G.board[r][c])mkEl(G.board[r][c])}
  drawFloors();drawGoals();drawBar();drawBoosters();
  $('#lvlName').innerHTML=(L.ch?'Challenge ':'Level ')+n+`<small>${L.ch?'Bonus rewards':(MILES[Math.ceil(n/5)*5]||'')}</small>`;
  $('#score').dataset.v=0;$('#score').textContent='0';
@@ -947,7 +970,7 @@ function outOfLives(){tickLives();const left=Math.max(0,S.regenAt-Date.now());co
  openModal(`<h2>Out of lives</h2><p>A new life arrives in <b>${m}:${String(s).padStart(2,'0')}</b>.</p><div style="font-size:60px;line-height:1;color:#ff5d73;width:70px;margin:0 auto">${ICON.heart}</div>
  <div class="row"><button class="btn green" data-a="refill">Refill · 100 <span style="display:inline-block;width:20px;vertical-align:-4px">${ICON.coin}</span></button><button class="btn ghost" data-a="close" style="color:var(--ink2);box-shadow:inset 0 0 0 2px #d8cbb3;background:#f4ead8">Wait</button></div>`)}
 function levelIntro(n){tickLives();const L=getLevel(n);if(S.lives<1){outOfLives();return}
- const goals=L.o.map(o=>{const g={...o};let txt=o.n;if(o.k==='yarn'||o.k==='paw'){txt=(L.f||[]).filter(f=>f.k===o.k).reduce((a,f)=>a+pattern(f.p,mulberry(1),1).length,0)}if(o.k==='box')txt=L.b.n;if(o.k==='rescue')txt=L.b.kit;if(o.k==='score')txt=o.n.toLocaleString();
+ const M=maskOf(L.sh);const goals=L.o.map(o=>{const g={...o};let txt=o.n;if(o.k==='yarn'||o.k==='paw'){txt=(L.f||[]).filter(f=>f.k===o.k).reduce((a,f)=>a+pattern(f.p,mulberry(1),1).filter(([r,c])=>M[r][c]).length,0)}if(o.k==='box')txt=L.b.n;if(o.k==='rescue')txt=L.b.kit;if(o.k==='score')txt=o.n.toLocaleString();
   return `<div class="goal" style="display:inline-flex;margin:3px">${goalIcon(o)}<b>${txt}</b></div>`}).join('');
  const st=S.stars[n]||0;
  openModal(`<h2>${L.ch?'Challenge ':'Level '}${n}</h2><div class="stars" style="margin:0">${[0,1,2].map(i=>ICON.star(i<st).replace('<svg','<svg style="width:34px;height:34px;transform:none"')).join('')}</div>
