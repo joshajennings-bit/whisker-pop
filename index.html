@@ -100,13 +100,14 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--gold);outline-o
 .goal.bump{animation:bump .3s}
 @keyframes bump{50%{transform:scale(1.18)}}
 .boardwrap{flex:1;display:grid;place-items:center;min-height:0;padding:4px 8px}
-#board{position:relative;border-radius:22px;background:linear-gradient(#fff3dc,#ffe2c6);padding:0;box-shadow:0 8px 0 rgba(60,30,100,.35),0 18px 30px rgba(10,5,40,.45),inset 0 0 0 4px rgba(255,255,255,.7);touch-action:none;overflow:hidden}
+#board{position:relative;border-radius:14px;background:#26335a;padding:0;touch-action:none;overflow:hidden}
+#board::before{content:'';position:absolute;inset:-11px;border-radius:26px;z-index:-1;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='46' height='46' viewBox='0 0 46 46'%3E%3Cg fill='%23ffffff' fill-opacity='.07' transform='rotate(-18 23 23)'%3E%3Cellipse cx='23' cy='29' rx='6.5' ry='5.5'/%3E%3Cellipse cx='14' cy='22' rx='2.8' ry='3.6'/%3E%3Cellipse cx='19.5' cy='15' rx='2.8' ry='3.8'/%3E%3Cellipse cx='26.5' cy='15' rx='2.8' ry='3.8'/%3E%3Cellipse cx='32' cy='22' rx='2.8' ry='3.6'/%3E%3C/g%3E%3C/svg%3E"),linear-gradient(160deg,#4c5f8f,#2f3d66 55%,#232e52);box-shadow:0 8px 0 rgba(15,20,50,.5),0 18px 30px rgba(8,6,35,.5),inset 0 0 0 3px rgba(190,205,240,.35),inset 0 3px 0 4px rgba(255,255,255,.12)}
 #cellsbg,#cells,#pieces,#fx{position:absolute;inset:0}#cells{pointer-events:none;z-index:2}
 #fx{pointer-events:none;z-index:5;overflow:visible}
 #board{overflow:visible}
 .cell{position:absolute;width:var(--s);height:var(--s);padding:2px}
-.cell i{display:block;width:100%;height:100%;border-radius:12px;background:rgba(190,130,90,.16);position:relative;overflow:hidden}
-.cell.alt i{background:rgba(190,130,90,.28)}
+.cell i{display:block;width:100%;height:100%;border-radius:12px;background:transparent;position:relative;overflow:hidden}
+#cellsbg .cell i{background:#dde6f3;box-shadow:inset 0 2px 0 rgba(255,255,255,.75),inset 0 -3px 0 rgba(70,95,140,.18)}#cellsbg .cell.alt i{background:#cdd9ec}
 .cell .fl{position:absolute;inset:0}.cell.f-paw i{background:rgba(255,120,170,.2);box-shadow:inset 0 0 0 3px rgba(255,110,165,.7)}.cell.f-yarn i{background:rgba(60,200,170,.16);box-shadow:inset 0 0 0 3px rgba(50,190,160,.75)}.cell.f-yarn.h2 i{background:rgba(70,150,245,.2);box-shadow:inset 0 0 0 3px rgba(60,140,240,.85)}.cell.gone i{animation:gone .35s forwards}@keyframes gone{to{opacity:0;transform:scale(1.3)}}
 .cell .fl svg{width:100%;height:100%}
 .pc{position:absolute;left:0;top:0;width:var(--s);height:var(--s);padding:calc(var(--s)*.05);transition:transform .18s ease;will-change:transform;pointer-events:none}
@@ -242,7 +243,7 @@ if(px<20&&sa)document.documentElement.style.setProperty('--sat','56px')}catch(e)
   <h1>Whisker<br><span>Pop!</span></h1>
   <p>Match cats. Rescue kittens. Collect them all.</p>
   <button class="btn" id="playBtn" style="font-size:30px;padding:12px 44px 16px">Play</button>
-  <p class="ver">v0.010</p>
+  <p class="ver">v0.011</p>
  </section>
 
  <section class="screen" id="map">
@@ -594,7 +595,7 @@ const isCat=p=>p&&p.kind==='cat';
 const plain=p=>isCat(p)&&!p.sp;
 const matchable=p=>isCat(p)&&p.sp!=='rainbow';
 function layout(){
- if(!G)return;const bw=$('#bw');const S=Math.floor(Math.min((bw.clientWidth-16)/N,(bw.clientHeight-10)/N));
+ if(!G)return;const bw=$('#bw');const S=Math.floor(Math.min((bw.clientWidth-34)/N,(bw.clientHeight-28)/N));
  G.S=Math.max(28,S);const b=$('#board');b.style.width=b.style.height=(G.S*N)+'px';b.style.setProperty('--s',G.S+'px');
  $$('#board .cell').forEach(e=>{e.style.transform=`translate(${e.dataset.c*G.S}px,${e.dataset.r*G.S}px)`});
  for(let r=0;r<N;r++)for(let c=0;c<N;c++){const p=G.board[r][c];if(p)place(p,r,c,0)}}
