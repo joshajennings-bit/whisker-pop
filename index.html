@@ -108,7 +108,7 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--gold);outline-o
 #board{overflow:visible}
 .cell{position:absolute;width:var(--s);height:var(--s);padding:2px}
 .cell i{display:block;width:100%;height:100%;border-radius:12px;background:transparent;position:relative;overflow:hidden}
-#cellsbg .cell i{background:#d9e2f2;box-shadow:none}#cellsbg .cell.alt i{background:#cbd7ec}
+#cellsbg .cell i,#cellsbg .cell.alt i{background:#d3deef;box-shadow:none;outline:1px solid #d3deef}
 .cell .fl{position:absolute;inset:0}.cell.f-paw i{background:rgba(255,120,170,.2);box-shadow:inset 0 0 0 3px rgba(255,110,165,.7)}.cell.f-yarn i{background:rgba(60,200,170,.16);box-shadow:inset 0 0 0 3px rgba(50,190,160,.75)}.cell.f-yarn.h2 i{background:rgba(70,150,245,.2);box-shadow:inset 0 0 0 3px rgba(60,140,240,.85)}.cell.gone i{animation:gone .35s forwards}@keyframes gone{to{opacity:0;transform:scale(1.3)}}
 .cell .fl svg{width:100%;height:100%}
 .pc{position:absolute;left:0;top:0;width:var(--s);height:var(--s);padding:calc(var(--s)*.05);transition:transform .18s ease;will-change:transform;pointer-events:none}
@@ -244,7 +244,7 @@ if(px<20&&sa)document.documentElement.style.setProperty('--sat','56px')}catch(e)
   <h1>Whisker<br><span>Pop!</span></h1>
   <p>Match cats. Rescue kittens. Collect them all.</p>
   <button class="btn" id="playBtn" style="font-size:30px;padding:12px 44px 16px">Play</button>
-  <p class="ver">v0.012</p>
+  <p class="ver">v0.013</p>
  </section>
 
  <section class="screen" id="map">
