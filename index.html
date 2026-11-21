@@ -244,13 +244,13 @@ if(px<20&&sa)document.documentElement.style.setProperty('--sat','56px')}catch(e)
   <h1>Whisker<br><span>Pop!</span></h1>
   <p>Match cats. Rescue kittens. Collect them all.</p>
   <button class="btn" id="playBtn" style="font-size:30px;padding:12px 44px 16px">Play</button>
-  <p class="ver">v0.015</p>
+  <p class="ver">v0.016</p>
  </section>
 
  <section class="screen" id="map">
   <div class="topbar">
    <button class="avatar" id="avBtn" aria-label="Profile"></button>
-   <div class="pill" id="livesPill" title="Lives"></div>
+   
    <div class="pill" id="coinPill"></div>
    <span class="sp"></span>
    <button class="ibtn" id="setBtn" aria-label="Settings"></button>
@@ -907,7 +907,7 @@ async function win(){
  if(left>0){G.moves=0;updateHUD();setScore(G.score+left*80)}
  await sleep(500);
  const s=G.L.s,stars=1+(G.score>=s[1]?1:0)+(G.score>=s[2]?1:0),first=!S.stars[G.n];
- const coins=20+stars*10+(first?30:0)+(G.L.ch&&first?60:0);
+ const coins=20+stars*10+(first?30:0)+(G.L.ch&&first?60:0)+((S.best[G.n]||0)&&G.score>S.best[G.n]?15:0);
  S.coins+=coins;S.stars[G.n]=Math.max(S.stars[G.n]||0,stars);S.best[G.n]=Math.max(S.best[G.n]||0,G.score);
  S.unlocked=Math.max(S.unlocked,Math.min(MAXLV,G.n+1));S.stats.score+=G.score;S.stats.won=(S.stats.won||0)+1;
  if(G.L.ch&&first)S.boosters.rainbow++;
@@ -928,7 +928,7 @@ async function lose(){
  openModal(`<h2>Out of moves!</h2><p>So close. Still to go:</p><div>${rem}</div>
  <div class="row"><button class="btn green" data-a="cont" ${S.coins<90?'disabled':''}>+5 moves · 90 <span style="display:inline-block;width:20px;vertical-align:-4px">${ICON.coin}</span></button></div>
  <div class="row"><button class="btn" data-a="retry">Try again</button><button class="btn ghost" data-a="map">Map</button></div>
- <p style="margin-top:12px;font-size:14px">Trying again uses one life.</p>`,{noClose:1})}
+ `,{noClose:1})}
 function confetti(){const cols=['#ff6b57','#ffc83d','#43cfa5','#5ab4ff','#ff8fb1','#b074ff'];const app=$('#app');
  for(let i=0;i<60;i++){const e=document.createElement('div');e.className='fxp';const s=6+Math.random()*8;
   Object.assign(e.style,{left:Math.random()*100+'%',top:'-20px',width:s+'px',height:s*1.6+'px',background:pick(cols),zIndex:70,borderRadius:'2px'});app.appendChild(e);
@@ -965,22 +965,20 @@ const ACT={
  cat(b){const id=b.dataset.id;if(S.gallery[id]){meow(.8+Math.random()*.7);purr(.8);const s=b.querySelector('svg');s.animate([{transform:'rotate(0)'},{transform:'rotate(-10deg) scale(1.1)'},{transform:'rotate(8deg)'},{transform:'rotate(0)'}],{duration:500})}else toast('Locked: '+(catById(id).unlock||'Play to find them'))}
 };
 $('#sheet').addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(b){sfx('click');ACT[b.dataset.a]?.(b)}});
-function spendLifeIfNeeded(){if(G&&!G.lifeSpent&&!G.won&&G.life!==false){G.lifeSpent=true;if(!G.winLevel)loseLife();updateTop()}}
-function begin(n){tickLives();if(S.lives<1){outOfLives();return}S.stats.played++;startLevel(n)}
+function spendLifeIfNeeded(){}
+function begin(n){S.stats.played++;startLevel(n)}
 function outOfLives(){tickLives();const left=Math.max(0,S.regenAt-Date.now());const m=Math.floor(left/60000),s=Math.floor(left/1000)%60;
  openModal(`<h2>Out of lives</h2><p>A new life arrives in <b>${m}:${String(s).padStart(2,'0')}</b>.</p><div style="font-size:60px;line-height:1;color:#ff5d73;width:70px;margin:0 auto">${ICON.heart}</div>
  <div class="row"><button class="btn green" data-a="refill">Refill · 100 <span style="display:inline-block;width:20px;vertical-align:-4px">${ICON.coin}</span></button><button class="btn ghost" data-a="close" style="color:var(--ink2);box-shadow:inset 0 0 0 2px #d8cbb3;background:#f4ead8">Wait</button></div>`)}
-function levelIntro(n){tickLives();const L=getLevel(n);if(S.lives<1){outOfLives();return}
+function levelIntro(n){const L=getLevel(n);
  const M=maskOf(L.sh);const goals=L.o.map(o=>{const g={...o};let txt=o.n;if(o.k==='yarn'||o.k==='paw'){txt=(L.f||[]).filter(f=>f.k===o.k).reduce((a,f)=>a+pattern(f.p,mulberry(1),1).filter(([r,c])=>M[r][c]).length,0)}if(o.k==='box')txt=L.b.n;if(o.k==='rescue')txt=L.b.kit;if(o.k==='score')txt=o.n.toLocaleString();
   return `<div class="goal" style="display:inline-flex;margin:3px">${goalIcon(o)}<b>${txt}</b></div>`}).join('');
  const st=S.stars[n]||0;
  openModal(`<h2>${L.ch?'Challenge ':'Level '}${n}</h2><div class="stars" style="margin:0">${[0,1,2].map(i=>ICON.star(i<st).replace('<svg','<svg style="width:34px;height:34px;transform:none"')).join('')}</div>
- <p>${L.m} moves${L.ch?' · bonus prizes':''}</p><h3>Goals</h3><div>${goals}</div>${L.tip?`<p style="margin-top:10px;font-size:14px">Tip: ${L.tip}</p>`:''}
+ <p>${L.m} moves${L.ch?' · bonus prizes':''}</p>${st?'<p style="font-size:13px">Replaying earns coins: 20 plus 10 per star, and 15 more for a new best score.</p>':''}<h3>Goals</h3><div>${goals}</div>${L.tip?`<p style="margin-top:10px;font-size:14px">Tip: ${L.tip}</p>`:''}
  <div class="row"><button class="btn" data-a="play" data-n="${n}" style="font-size:26px;padding:10px 40px 14px">Play</button></div>`)}
 /* ---------- map ---------- */
 function updateTop(){tickLives();$('#coinPill').innerHTML=`${ICON.coin}<span>${S.coins}</span>`;$('#gCoin').innerHTML=`${ICON.coin}<span>${S.coins}</span>`;
- const full=S.lives>=MAXL,left=Math.max(0,S.regenAt-Date.now());
- $('#livesPill').innerHTML=`${ICON.heart}<span>${S.lives}</span>${full?'':`<small>${Math.floor(left/60000)}:${String(Math.floor(left/1000)%60).padStart(2,'0')}</small>`}`;
  $('#avBtn').innerHTML=catSVG(S.avatar||'orange');
  $('#navDaily').querySelector('.dot')?.remove();if(S.daily.last!==today())$('#navDaily').insertAdjacentHTML('beforeend','<i class="dot"></i>')}
 function renderMap(){
@@ -997,7 +995,7 @@ function renderMap(){
  inner.querySelectorAll('.node').forEach(b=>b.onclick=()=>{sfx('click');levelIntro(+b.dataset.n)});
  const cn=Math.min(S.unlocked,count);sc.scrollTop=Math.max(0,H-95-(cn-1)*gap-sc.clientHeight/2)}
 /* ---------- meta modals ---------- */
-const DAILY=[{c:25},{c:40},{b:'hammer'},{c:60},{b:'shuffle'},{c:80,b:'moves'},{c:150,b:'rainbow',l:1}];
+const DAILY=[{c:25},{c:40},{b:'hammer'},{c:60},{b:'shuffle'},{c:80,b:'moves'},{c:150,b:'rainbow'}];
 function dailyLabel(d){return[d.c?d.c+' coins':'',d.b?BST[d.b].n:'',d.l?'Full lives':''].filter(Boolean).join(' + ')}
 function dailyIcon(d){return d.b?BST[d.b].ic:ICON.coin}
 function nextDay(){const t=today(),y=new Date();y.setDate(y.getDate()-1);const ys=y.getFullYear()+'-'+String(y.getMonth()+1).padStart(2,'0')+'-'+String(y.getDate()).padStart(2,'0');
@@ -1016,8 +1014,8 @@ function openGallery(){const n=CATS.filter(c=>S.gallery[c.id]).length;
 function openShop(){tickLives();
  openModal(`<h2>Cat Shop</h2><div class="pill" style="display:inline-flex;background:#f4ead8;color:var(--ink);box-shadow:none;margin:4px 0 8px">${ICON.coin}<span>${S.coins}</span></div>
  ${Object.keys(BST).map(id=>{const b=BST[id];return`<div class="shopitem">${b.ic}<div><b>${b.n} <small style="color:var(--ink2)">x${S.boosters[id]}</small></b>${b.d}</div><button class="btn sm ${S.coins>=b.cost?'green':''}" data-a="buy" data-id="${id}">${b.cost}</button></div>`}).join('')}
- <div class="shopitem"><div style="width:44px;height:44px;flex:none;color:#ff5d73">${ICON.heart}</div><div><b>Refill lives</b>Back to ${MAXL} lives right away.</div><button class="btn sm" data-a="refill">100</button></div>
- <p style="font-size:13px">Earn coins by clearing levels, getting stars and claiming daily rewards.</p>`)}
+ 
+ <p style="font-size:13px">Earn coins by clearing levels, replaying old ones, getting stars and claiming daily rewards. Lives are unlimited.</p>`)}
 function openProfile(){const ok=CATS.filter(c=>S.gallery[c.id]);const cleared=Object.keys(S.stars).length;
  openModal(`<h2>Profile</h2><div class="avatar" style="width:92px;height:92px;margin:6px auto;border-width:4px">${catSVG(S.avatar||'orange')}</div>
  <input type="text" id="nameIn" maxlength="14" value="${S.name.replace(/"/g,'')}" aria-label="Player name">
@@ -1037,7 +1035,7 @@ function openSettings(keep){const t=(k,l)=>`<div class="sl"><span>${l}</span><bu
  $('#purrT').onclick=()=>{meow(.9+Math.random()*.5);purr(1)}}
 function openPause(){if(!G||G.busy&&G.ended)return;
  openModal(`<h2>Paused</h2><div class="sl"><span>Music</span><button class="tog ${S.set.music?'on':''}" data-a="tog" data-k="music" aria-label="Music"></button></div><div class="sl"><span>Sound effects</span><button class="tog ${S.set.sfx?'on':''}" data-a="tog" data-k="sfx" aria-label="Sound"></button></div>
- <div class="row"><button class="btn green" data-a="resume">Resume</button></div><div class="row"><button class="btn sm ghost" data-a="restart" style="background:#f4ead8;color:var(--ink);box-shadow:none">Restart</button><button class="btn sm ghost" data-a="map" style="background:#f4ead8;color:var(--ink);box-shadow:none">Quit</button></div><p style="font-size:13px">Restarting or quitting uses one life.</p>`,{});}
+ <div class="row"><button class="btn green" data-a="resume">Resume</button></div><div class="row"><button class="btn sm ghost" data-a="restart" style="background:#f4ead8;color:var(--ink);box-shadow:none">Restart</button><button class="btn sm ghost" data-a="map" style="background:#f4ead8;color:var(--ink);box-shadow:none">Quit</button></div>`,{});}
 /* ---------- input ---------- */
 (function(){const b=$('#board');let down=null;
  const cellAt=e=>{const R=b.getBoundingClientRect(),x=e.clientX-R.left,y=e.clientY-R.top,c=Math.floor(x/G.S),r=Math.floor(y/G.S);return inb(r,c)?[r,c]:null};
@@ -1057,7 +1055,7 @@ function boot(){load();tickLives();drawIcons();applyTheme();updateTop();show('ti
  $('#playBtn').onclick=()=>{audioInit();sfx('click');meow(1);show('map');if(S.daily.last!==today())setTimeout(openDaily,500)};
  $('#avBtn').onclick=()=>{sfx('click');openProfile()};$('#setBtn').onclick=()=>{sfx('click');openSettings()};
  $('#navGal').onclick=()=>{sfx('click');openGallery()};$('#navDaily').onclick=()=>{sfx('click');openDaily()};$('#navShop').onclick=()=>{sfx('click');openShop()};$('#navProf').onclick=()=>{sfx('click');openProfile()};
- $('#livesPill').onclick=()=>{S.lives<MAXL&&outOfLives()};$('#coinPill').onclick=()=>openShop();
+ $('#coinPill').onclick=()=>openShop();
  $('#pauseBtn').onclick=()=>{sfx('click');openPause()};
  $('#modal').addEventListener('click',e=>{if(e.target.id==='modal'&&!$('#sheet').querySelector('[data-a=next],[data-a=cont]'))closeModal()});
  setInterval(()=>{if($('#map').classList.contains('on'))updateTop()},1000);
