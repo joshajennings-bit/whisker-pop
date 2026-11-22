@@ -268,7 +268,7 @@ if(px<20&&sa)document.documentElement.style.setProperty('--sat','56px')}catch(e)
   <h1>Whisker<br><span>Pop!</span></h1>
   <p>Match cats. Rescue kittens. Collect them all.</p>
   <button class="btn" id="playBtn" style="font-size:30px;padding:12px 44px 16px">Play</button>
-  <p class="ver">v0.028</p>
+  <p class="ver">v0.029</p>
  </section>
 
  <section class="screen" id="map">
@@ -911,7 +911,9 @@ function shuffleBoard(silent){
  }while((findGroups().length||!findMove())&&tries<200);
  cells.forEach(k=>{const p=G.board[kr(k)][kc(k)];refresh(p);place(p,kr(k),kc(k),.45,'ease-in-out')});
  if(!silent){sfx('swap');toast('No moves left. Shuffling!')}}
-function clearHint(){if(G)clearTimeout(G.hintT);$$('.pc.hint').forEach(e=>e.classList.remove('hint'))}
+function clearHint(){if(G){clearTimeout(G.hintT);G.lastAct=Date.now()}$$('.pc.hint').forEach(e=>e.classList.remove('hint'))}
+function showHint(){if(!G||G.ended||G.busy)return;const m=findMove();if(m&&G.board[m[0]][m[1]]&&G.board[m[2]][m[3]]){G.board[m[0]][m[1]].el.classList.add('hint');G.board[m[2]][m[3]].el.classList.add('hint')}}
+setInterval(()=>{if(G&&$('#game').classList.contains('on')&&!G.busy&&!G.ended&&!G.armed&&!$('#modal').classList.contains('on')&&!$('.pc.hint')&&Date.now()-(G.lastAct||Date.now())>10000)showHint()},1000);
 function armHint(){clearHint();if(G.busy||G.ended)return;G.hintT=setTimeout(()=>{const m=G.ended?null:findMove();if(m){G.board[m[0]][m[1]].el.classList.add('hint');G.board[m[2]][m[3]].el.classList.add('hint')}},10000)}
 function select(r,c){unselect();G.sel=[r,c];const p=G.board[r][c];if(p)p.el.classList.add('sel')}
 function unselect(){if(G.sel){const p=G.board[G.sel[0]][G.sel[1]];if(p)p.el.classList.remove('sel')}G.sel=null}
