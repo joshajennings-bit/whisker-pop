@@ -268,7 +268,7 @@ if(px<20&&sa)document.documentElement.style.setProperty('--sat','56px')}catch(e)
   <h1>Whisker<br><span>Pop!</span></h1>
   <p>Match cats. Rescue kittens. Collect them all.</p>
   <button class="btn" id="playBtn" style="font-size:30px;padding:12px 44px 16px">Play</button>
-  <p class="ver">v0.029</p>
+  <p class="ver">v0.030</p>
  </section>
 
  <section class="screen" id="map">
@@ -913,7 +913,10 @@ function shuffleBoard(silent){
  if(!silent){sfx('swap');toast('No moves left. Shuffling!')}}
 function clearHint(){if(G){clearTimeout(G.hintT);G.lastAct=Date.now()}$$('.pc.hint').forEach(e=>e.classList.remove('hint'))}
 function showHint(){if(!G||G.ended||G.busy)return;const m=findMove();if(m&&G.board[m[0]][m[1]]&&G.board[m[2]][m[3]]){G.board[m[0]][m[1]].el.classList.add('hint');G.board[m[2]][m[3]].el.classList.add('hint')}}
-setInterval(()=>{if(G&&$('#game').classList.contains('on')&&!G.busy&&!G.ended&&!G.armed&&!$('#modal').classList.contains('on')&&!$('.pc.hint')&&Date.now()-(G.lastAct||Date.now())>10000)showHint()},1000);
+async function ensureMove(){if(!G||G.busy||G.ended||findMove())return;G.busy=true;clearHint();shuffleBoard();await sleep(600);if(G.board&&findGroups().length)await resolve([],null);G.busy=false;armHint()}
+setInterval(()=>{if(G&&$('#game').classList.contains('on')&&!G.busy&&!G.ended&&!G.armed&&!$('#modal').classList.contains('on')){const idle=Date.now()-(G.lastAct||Date.now());
+ if(idle>2500&&!findMove()){ensureMove();return}
+ if(!$('.pc.hint')&&idle>10000)showHint()}},1000);
 function armHint(){clearHint();if(G.busy||G.ended)return;G.hintT=setTimeout(()=>{const m=G.ended?null:findMove();if(m){G.board[m[0]][m[1]].el.classList.add('hint');G.board[m[2]][m[3]].el.classList.add('hint')}},10000)}
 function select(r,c){unselect();G.sel=[r,c];const p=G.board[r][c];if(p)p.el.classList.add('sel')}
 function unselect(){if(G.sel){const p=G.board[G.sel[0]][G.sel[1]];if(p)p.el.classList.remove('sel')}G.sel=null}
@@ -1091,7 +1094,7 @@ async function thingRevenge(){
  sfx('trip');sayBubble('Oof!',1000,'20%');
  el.animate([{transform:tf(cx+sz*.34)},{transform:tf(cx+sz*.5,10,-26)},{transform:tf(cx+sz*.7,26,-90,.95),offset:.35},{transform:tf(W*.7,10,-360,.9),offset:.65},{transform:tf(W+sz,0,-760,.9)}],{duration:1500,easing:'ease-in',fill:'forwards'}).onfinish=()=>el.remove();
  await sleep(1500);
- if(G){G.busy=false;armHint()}}
+ if(G){G.busy=false;armHint();ensureMove()}}
 function chickenArrive(){const SZ=G.S,sz=SZ*1.9;const el=fxEl('fxp chickidle',{left:-SZ*.1+'px',top:N*SZ-sz*.45+'px',width:sz+'px',height:sz+'px',zIndex:9});el.innerHTML=catSVG('chicken');G.chick=el;
  el.animate([{transform:`translateX(${-sz*1.6}px) rotate(-25deg)`},{transform:'translateX(0) rotate(0)'}],{duration:520,easing:'cubic-bezier(.2,1.4,.4,1)'});sfx('pounce')}
 async function chickenAt(r,c){
@@ -1258,7 +1261,7 @@ const ACT={
  next(){closeModal();if(G.n>=MAXLV)show('map');else startLevel(G.n+1)},
  replay(){closeModal();begin(G.n)},
  retry(){closeModal();spendLifeIfNeeded();begin(G.n)},
- cont(){if(S.coins<90)return;S.coins-=90;save();closeModal();G.ended=false;G.moves+=5;updateHUD();G.busy=false;armHint();updateTop()},
+ cont(){if(S.coins<90)return;S.coins-=90;save();closeModal();G.ended=false;G.moves+=5;updateHUD();G.busy=false;armHint();updateTop();ensureMove()},
  play(b){closeModal();startLevel(+b.dataset.n)},
  resume(){closeModal()},
  restart(){closeModal();spendLifeIfNeeded();begin(G.n)},
