@@ -268,7 +268,7 @@ if(px<20&&sa)document.documentElement.style.setProperty('--sat','56px')}catch(e)
   <h1>Whisker<br><span>Pop!</span></h1>
   <p>Match cats. Rescue kittens. Collect them all.</p>
   <button class="btn" id="playBtn" style="font-size:30px;padding:12px 44px 16px">Play</button>
-  <p class="ver">v0.027</p>
+  <p class="ver">v0.028</p>
  </section>
 
  <section class="screen" id="map">
@@ -438,7 +438,7 @@ const CATS=[
  {id:'black',name:'Midnight',trait:'Black cat. Appears exactly when snacks do.',base:'#4a4663',dark:'#2f2b45',iris:'#ffd23f',muz:'#6b6688',glow:'#7a74a8'},
  {id:'white',name:'Mochi',trait:'Fluffy white cat. Sheds on purpose.',base:'#ffffff',dark:'#d9e2f2',iris:'#5ab4ff',muz:'#f2f5fb',glow:'#9cc7ff'},
  {id:'gray',name:'Ash',trait:'Gray cat. Calm, dignified, naps at 3pm sharp.',base:'#a3adc2',dark:'#7b869d',iris:'#f2b53a',muz:'#dfe4ee',glow:'#a9b6d6'},
- {id:'siamese',name:'Saku',trait:'Siamese cat. Talks all day, mostly about dinner.',base:'#f5e5c9',dark:'#7b5a48',iris:'#4aa8ff',muz:'#fff4e0',glow:'#c9a37e'},
+ {id:'siamese',name:'Saku',trait:'Siamese cat. Cross-eyed and proud. Talks all day, mostly about dinner.',base:'#f5e5c9',dark:'#7b5a48',iris:'#4aa8ff',muz:'#fff4e0',glow:'#c9a37e'},
  {id:'calico',name:'Patches',trait:'Calico cat. Three colors, zero patience.',base:'#fffaf0',dark:'#f29a3a',iris:'#3fb36b',muz:'#fff',glow:'#ffbf6a'},
  {id:'tuxedo',name:'Sir Whiskers',trait:'Tuxedo cat. Dressed for every occasion.',base:'#3b3856',dark:'#242238',iris:'#7ad66a',muz:'#fff',glow:'#8c86c0',unlock:'Earn 12 stars'},
  {id:'chubby',name:'Biscuit',trait:'Chubby cat. Round, warm, always hungry.',base:'#ffbd6e',dark:'#f08c2e',iris:'#6a4a2a',muz:'#ffeacb',glow:'#ffb15a',unlock:'Earn 30 stars'},
@@ -452,7 +452,7 @@ const SUPERCATS=[
 const catById=id=>CATS.find(c=>c.id===id)||SUPERCATS.find(c=>c.id===id);
 const _c={};
 function eyes(c,big,wide){const r=big?9:7.5,ry=big?10:8.5;
- const e=x=>`<ellipse cx="${x}" cy="55" rx="${r}" ry="${ry}" fill="#fff"/><ellipse cx="${x+1}" cy="56" rx="${r-2}" ry="${ry-1.5}" fill="${c.iris}"/><ellipse cx="${x+1}" cy="56" rx="${c.id==='black'?2:3.6}" ry="${c.id==='black'?6:4.6}" fill="#1b1424"/><circle cx="${x+3}" cy="52.5" r="2.2" fill="#fff"/>`;
+ const e=x=>{const h=c.id==='siamese'?(x<50?5:-3):1;return `<ellipse cx="${x}" cy="55" rx="${r}" ry="${ry}" fill="#fff"/><ellipse cx="${x+h}" cy="56" rx="${r-2}" ry="${ry-1.5}" fill="${c.iris}"/><ellipse cx="${x+h}" cy="56" rx="${c.id==='black'?2:3.6}" ry="${c.id==='black'?6:4.6}" fill="#1b1424"/><circle cx="${x+h+2}" cy="52.5" r="2.2" fill="#fff"/>`};
  return `<g class="eyes">${e(35)}${e(65)}</g>`}
 const TC={orange:'#ff9a3c',black:'#5a4fa0',white:'#ffffff',gray:'#98a6c4',siamese:'#d9b48a',calico:'#ffb35c',tuxedo:'#5a4fa0',chubby:'#ff9a3c',kitten:'#ffd9c2'};
 function specialSVG(id,sp){
@@ -976,33 +976,36 @@ function findGroupsC(){
  return groups}
 const GRY='#9aa6c0',GRYD='#6c7893',CRM='#f4e3c6',BRN='#7b5a48',OUT='#2a1f4d';
 function carlFullSVG(){return _c.carlfull||(_c.carlfull=`<svg viewBox="0 0 200 200" aria-hidden="true">
-<path d="M38 60L44 6L84 38Z" fill="${GRY}" stroke="${OUT}" stroke-width="3" stroke-linejoin="round"/><path d="M48 46L50 21L69 37Z" fill="#ff9db5"/>
-<path d="M162 60L156 6L116 38Z" fill="${BRN}" stroke="${OUT}" stroke-width="3" stroke-linejoin="round"/><path d="M152 46L150 21L131 37Z" fill="#d9a98c"/>
-<path d="M100 82A88 58 0 0 0 100 198Z" fill="${GRY}"/><path d="M100 82A88 58 0 0 1 100 198Z" fill="${CRM}"/>
-<path d="M100 128A46 32 0 0 0 100 192Z" fill="#cfd6e6"/><path d="M100 128A46 32 0 0 1 100 192Z" fill="#fcf4e4"/>
-<path d="M24 138h16M30 158h16M42 176h16M26 120h12" stroke="${GRYD}" stroke-width="6" stroke-linecap="round"/>
-<ellipse cx="100" cy="140" rx="88" ry="58" fill="none" stroke="${OUT}" stroke-width="3"/>
-<ellipse cx="64" cy="192" rx="27" ry="12" fill="${GRY}" stroke="${OUT}" stroke-width="3"/><ellipse cx="136" cy="192" rx="27" ry="12" fill="${CRM}" stroke="${OUT}" stroke-width="3"/><ellipse cx="144" cy="194" rx="15" ry="7" fill="${BRN}" opacity=".6"/>
-<path d="M100 32A64 52 0 0 0 100 136Z" fill="${GRY}"/><path d="M100 32A64 52 0 0 1 100 136Z" fill="${CRM}"/>
-<path d="M100 94Q134 86 150 108Q140 134 100 136Z" fill="${BRN}" opacity=".5"/>
-<path d="M72 38v16M86 34v18M42 82h14M42 96h12" stroke="${GRYD}" stroke-width="5" stroke-linecap="round" fill="none"/>
-<path d="M114 36q4 9 0 18M128 40q3 8 0 14" stroke="${BRN}" stroke-width="5" stroke-linecap="round" fill="none" opacity=".55"/>
-<ellipse cx="100" cy="84" rx="64" ry="52" fill="none" stroke="${OUT}" stroke-width="3"/>
-<ellipse cx="50" cy="110" rx="12" ry="7" fill="#ff7a98" opacity=".4"/><ellipse cx="150" cy="110" rx="12" ry="7" fill="#ff7a98" opacity=".4"/>
-<ellipse cx="78" cy="84" rx="15" ry="16" fill="#fff" stroke="${OUT}" stroke-width="2.5"/><ellipse cx="122" cy="84" rx="15" ry="16" fill="#fff" stroke="${OUT}" stroke-width="2.5"/>
-<circle cx="86" cy="89" r="8.5" fill="#3a9bff"/><circle cx="114" cy="89" r="8.5" fill="#3a9bff"/><circle cx="87" cy="89" r="4.6" fill="#1b1424"/><circle cx="113" cy="89" r="4.6" fill="#1b1424"/><circle cx="89" cy="86" r="2" fill="#fff"/><circle cx="115" cy="86" r="2" fill="#fff"/>
-<path d="M92 105q8-5 16 0q-3 7-8 7q-5 0-8-7z" fill="#ff7a98"/><path d="M100 112q0 8-9 8M100 112q0 8 9 8" stroke="#6b3b4b" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-<path d="M62 128Q100 150 138 128" stroke="rgba(0,0,0,.18)" stroke-width="3" fill="none" stroke-linecap="round"/>
-<path d="M60 108l-34-7M60 114l-34 7M140 108l34-7M140 114l34 7" stroke="#fff" stroke-width="2.4" stroke-linecap="round" opacity=".9"/></svg>`)}
+<path d="M176 150Q200 150 198 178Q192 192 160 192L150 168Z" fill="#4b4a4f" stroke="${OUT}" stroke-width="3" stroke-linejoin="round"/>
+<path d="M26 150Q18 98 72 94L150 78Q198 78 198 148Q200 192 150 192L50 192Q24 192 26 150Z" fill="#aaa6a0" stroke="${OUT}" stroke-width="3" stroke-linejoin="round"/>
+<path d="M118 82q8 22 2 46M138 80q8 24 4 52M158 82q8 26 6 56M176 92q6 22 4 46M104 88q4 14 0 28" stroke="#76726d" stroke-width="6" stroke-linecap="round" fill="none"/>
+<path d="M30 134Q40 186 62 192L108 192Q112 150 92 120Z" fill="#fff"/>
+<ellipse cx="52" cy="184" rx="28" ry="12" fill="#fff" stroke="${OUT}" stroke-width="3"/><ellipse cx="104" cy="186" rx="28" ry="11" fill="#fff" stroke="${OUT}" stroke-width="3"/>
+<path d="M44 182v8M60 182v8M96 184v6M112 184v6" stroke="#cfcbc6" stroke-width="2.5" stroke-linecap="round"/>
+<path d="M36 52L26 6L76 34Z" fill="#a29e98" stroke="${OUT}" stroke-width="3" stroke-linejoin="round"/><path d="M43 44L38 19L63 35Z" fill="#e9a3b0"/>
+<path d="M128 52L138 6L88 34Z" fill="#a29e98" stroke="${OUT}" stroke-width="3" stroke-linejoin="round"/><path d="M121 44L126 19L101 35Z" fill="#e9a3b0"/>
+<ellipse cx="82" cy="84" rx="60" ry="48" fill="#aaa6a0"/>
+<path d="M82 40Q72 66 68 100L96 100Q92 66 82 40Z" fill="#fff"/>
+<ellipse cx="82" cy="112" rx="32" ry="24" fill="#fff"/>
+<ellipse cx="50" cy="92" rx="22" ry="15" fill="#8a8681" opacity=".65"/><ellipse cx="114" cy="92" rx="22" ry="15" fill="#8a8681" opacity=".65"/>
+<path d="M66 40l5 18M56 44l6 17M98 40l-5 18M108 44l-6 17M44 62l9 6M120 62l-9 6M28 88h12M28 100h10M136 88h-12M136 100h-10" stroke="#6d6964" stroke-width="4.5" stroke-linecap="round" fill="none"/>
+<ellipse cx="82" cy="84" rx="60" ry="48" fill="none" stroke="${OUT}" stroke-width="3"/>
+<ellipse cx="60" cy="86" rx="14" ry="12.5" fill="#fff" stroke="${OUT}" stroke-width="2.5"/><ellipse cx="104" cy="86" rx="14" ry="12.5" fill="#fff" stroke="${OUT}" stroke-width="2.5"/>
+<circle cx="67" cy="88" r="8" fill="#3a9bff"/><circle cx="97" cy="88" r="8" fill="#3a9bff"/><circle cx="67.5" cy="88" r="4.3" fill="#1b1424"/><circle cx="96.5" cy="88" r="4.3" fill="#1b1424"/><circle cx="69" cy="85.5" r="1.8" fill="#fff"/><circle cx="98.5" cy="85.5" r="1.8" fill="#fff"/>
+<path d="M73 104q9-5 18 0q-3 8-9 8q-6 0-9-8z" fill="#b46f72"/><path d="M82 112q0 8-9 8M82 112q0 8 9 8" stroke="#6b3b4b" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+<path d="M50 108l-34-6M50 114l-34 7M114 108l34-6M114 114l34 7" stroke="#fff" stroke-width="2.4" stroke-linecap="round" opacity=".95"/>
+<path d="M40 128Q82 150 124 128" stroke="#3b3a55" stroke-width="5" fill="none" stroke-linecap="round"/>
+<circle cx="60" cy="142" r="7" fill="#d9dde6" stroke="${OUT}" stroke-width="2"/><path d="M54 142h12" stroke="${OUT}" stroke-width="1.5"/><circle cx="58" cy="139" r="2" fill="#fff"/></svg>`)}
 function carlBabySVG(){return _c.carlbaby||(_c.carlbaby=`<svg viewBox="-4 -4 108 108" aria-hidden="true">
-<path d="M15 42L19 8Q20 5 24 8L44 28Z" fill="${GRY}"/><path d="M85 42L81 8Q80 5 76 8L56 28Z" fill="${BRN}"/><path d="M23 36L24 18L37 29Z" fill="#ff9db5"/>
-<path d="M50 27A36 31 0 0 0 50 89Z" fill="${GRY}"/><path d="M50 27A36 31 0 0 1 50 89Z" fill="${CRM}"/>
-<path d="M50 62Q72 56 84 66Q76 88 50 89Z" fill="${BRN}" opacity=".5"/><path d="M38 29v9M30 32l2 8M16 52h8" stroke="${GRYD}" stroke-width="3.5" stroke-linecap="round" fill="none"/>
-<ellipse cx="35" cy="55" rx="9" ry="10" fill="#fff"/><ellipse cx="65" cy="55" rx="9" ry="10" fill="#fff"/><circle cx="39" cy="58" r="5" fill="#3a9bff"/><circle cx="61" cy="58" r="5" fill="#3a9bff"/><circle cx="39.5" cy="58" r="2.7" fill="#1b1424"/><circle cx="60.5" cy="58" r="2.7" fill="#1b1424"/><circle cx="41" cy="56" r="1.2" fill="#fff"/><circle cx="62" cy="56" r="1.2" fill="#fff"/>
-<path d="M45 66q5-3 10 0q-2 4-5 4q-3 0-5-4z" fill="#ff7a98"/><path d="M50 70q0 5-5 5M50 70q0 5 5 5" stroke="#6b3b4b" stroke-width="2" fill="none" stroke-linecap="round"/>
-<ellipse cx="24" cy="68" rx="6" ry="4" fill="#ff7a98" opacity=".4"/><ellipse cx="76" cy="68" rx="6" ry="4" fill="#ff7a98" opacity=".4"/>
-<g stroke="#fff" stroke-width="1.6" stroke-linecap="round" opacity=".85"><path d="M30 68l-18-3M30 72l-18 3M70 68l18-3M70 72l18 3"/></g>
-<circle cx="50" cy="12" r="4" fill="#ff7aa8"/><path d="M50 12l-8-4v8zM50 12l8-4v8z" fill="#ff7aa8"/></svg>`)}
+<path d="M15 42L19 8Q20 5 24 8L44 28Z" fill="#a29e98"/><path d="M85 42L81 8Q80 5 76 8L56 28Z" fill="#a29e98"/><path d="M23 36L24 18L37 29Z" fill="#e9a3b0"/><path d="M77 36L76 18L63 29Z" fill="#e9a3b0"/>
+<ellipse cx="50" cy="58" rx="36" ry="31" fill="#aaa6a0"/>
+<path d="M50 28Q43 44 41 66L59 66Q57 44 50 28Z" fill="#fff"/><ellipse cx="50" cy="71" rx="17" ry="13" fill="#fff"/>
+<ellipse cx="29" cy="62" rx="13" ry="9" fill="#8a8681" opacity=".6"/><ellipse cx="71" cy="62" rx="13" ry="9" fill="#8a8681" opacity=".6"/>
+<path d="M40 30l3 10M33 33l3 10M60 30l-3 10M67 33l-3 10M16 56h8M16 64h7M84 56h-8M84 64h-7" stroke="#6d6964" stroke-width="3" stroke-linecap="round" fill="none"/>
+<ellipse cx="36" cy="57" rx="8.5" ry="8" fill="#fff"/><ellipse cx="64" cy="57" rx="8.5" ry="8" fill="#fff"/><circle cx="40" cy="58.5" r="5" fill="#3a9bff"/><circle cx="60" cy="58.5" r="5" fill="#3a9bff"/><circle cx="40.4" cy="58.5" r="2.7" fill="#1b1424"/><circle cx="59.6" cy="58.5" r="2.7" fill="#1b1424"/><circle cx="41.5" cy="57" r="1.1" fill="#fff"/><circle cx="60.7" cy="57" r="1.1" fill="#fff"/>
+<path d="M45 67q5-3 10 0q-2 4-5 4q-3 0-5-4z" fill="#b46f72"/><path d="M50 71q0 5-5 5M50 71q0 5 5 5" stroke="#6b3b4b" stroke-width="2" fill="none" stroke-linecap="round"/>
+<g stroke="#fff" stroke-width="1.6" stroke-linecap="round" opacity=".9"><path d="M30 70l-18-3M30 74l-18 3M70 70l18-3M70 74l18 3"/></g>
+<circle cx="50" cy="90" r="4" fill="#d9dde6" stroke="#2a1f4d" stroke-width="1.3"/><path d="M34 86Q50 96 66 86" stroke="#3b3a55" stroke-width="3" fill="none" stroke-linecap="round"/></svg>`)}
 function carlPieceHTML(p){if(p.carl.baby)return carlBabySVG();const q=p.carl.q;
  return `<div class="cqw"><div class="cqb" style="left:-${(q&1)*100}%;top:-${(q>>1)*100}%">${carlFullSVG()}</div></div>`}
 function carlCheck(){if(!G)return;const grp={};
