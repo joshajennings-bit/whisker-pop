@@ -268,7 +268,7 @@ if(px<20&&sa)document.documentElement.style.setProperty('--sat','56px')}catch(e)
   <h1>Whisker<br><span>Pop!</span></h1>
   <p>Match cats. Rescue kittens. Collect them all.</p>
   <button class="btn" id="playBtn" style="font-size:30px;padding:12px 44px 16px">Play</button>
-  <p class="ver">v0.030</p>
+  <p class="ver">v0.031</p>
  </section>
 
  <section class="screen" id="map">
@@ -1186,6 +1186,7 @@ async function win(){
  const left=G.moves,n=Math.min(left,6),keys=[];
  for(let i=0;i<n;i++){const c=allKeys(p=>plain(p)&&!keys.includes(key(p.r,p.c)));if(!c.length)break;const k=pick(c),p=G.board[kr(k)][kc(k)];p.sp=Math.random()<.5?'laser':'laserv';refresh(p);keys.push(k);G.moves--;updateHUD();sfx('rainbow');await sleep(160)}
  if(keys.length){await sleep(200);G.chainCoins=50;await doClear(new Set(keys),[],2);await settle();await resolve([],null)}
+ for(let guard=0;guard<14;guard++){const sp=allKeys(p=>isCat(p)&&p.sp);if(!sp.length)break;await sleep(250);G.chainCoins=50;await doClear(new Set(sp),[],2);await settle();await resolve([],null)}
  if(left>0){G.moves=0;updateHUD();setScore(G.score+left*80)}
  await sleep(500);
  const s=G.L.s,stars=1+(G.score>=s[1]?1:0)+(G.score>=s[2]?1:0),first=!S.stars[G.n];
