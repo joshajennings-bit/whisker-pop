@@ -245,7 +245,7 @@ if(px<20&&sa)document.documentElement.style.setProperty('--sat','56px')}catch(e)
   <h1>Whisker<br><span>Pop!</span></h1>
   <p>Match cats. Rescue kittens. Collect them all.</p>
   <button class="btn" id="playBtn" style="font-size:30px;padding:12px 44px 16px">Play</button>
-  <p class="ver">v0.022</p>
+  <p class="ver">v0.023</p>
  </section>
 
  <section class="screen" id="map">
@@ -866,7 +866,7 @@ function shuffleBoard(silent){
  cells.forEach(k=>{const p=G.board[kr(k)][kc(k)];refresh(p);place(p,kr(k),kc(k),.45,'ease-in-out')});
  if(!silent){sfx('swap');toast('No moves left. Shuffling!')}}
 function clearHint(){if(G)clearTimeout(G.hintT);$$('.pc.hint').forEach(e=>e.classList.remove('hint'))}
-function armHint(){clearHint();if(G.busy||G.ended)return;G.hintT=setTimeout(()=>{const m=G.ended?null:findMove();if(m){G.board[m[0]][m[1]].el.classList.add('hint');G.board[m[2]][m[3]].el.classList.add('hint')}},3000)}
+function armHint(){clearHint();if(G.busy||G.ended)return;G.hintT=setTimeout(()=>{const m=G.ended?null:findMove();if(m){G.board[m[0]][m[1]].el.classList.add('hint');G.board[m[2]][m[3]].el.classList.add('hint')}},5000)}
 function select(r,c){unselect();G.sel=[r,c];const p=G.board[r][c];if(p)p.el.classList.add('sel')}
 function unselect(){if(G.sel){const p=G.board[G.sel[0]][G.sel[1]];if(p)p.el.classList.remove('sel')}G.sel=null}
 async function trySwap(r1,c1,r2,c2){
