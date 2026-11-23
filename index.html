@@ -268,7 +268,7 @@ if(px<20&&sa)document.documentElement.style.setProperty('--sat','56px')}catch(e)
   <h1>Whisker<br><span>Pop!</span></h1>
   <p>Match cats. Rescue kittens. Collect them all.</p>
   <button class="btn" id="playBtn" style="font-size:30px;padding:12px 44px 16px">Play</button>
-  <p class="ver">v0.032</p>
+  <p class="ver">v0.033</p>
  </section>
 
  <section class="screen" id="map">
@@ -1190,7 +1190,7 @@ async function win(){
  if(left>0){G.moves=0;updateHUD();setScore(G.score+left*80)}
  await sleep(500);
  const s=G.L.s,stars=1+(G.score>=s[1]?1:0)+(G.score>=s[2]?1:0),first=!S.stars[G.n];
- const coins=20+stars*10+(first?30:0)+(G.L.ch&&first?60:0);
+ const full=20+stars*10+30+(G.L.ch?60:0),coins=first?full:Math.floor(full/2);
  S.coins+=coins;S.stars[G.n]=Math.max(S.stars[G.n]||0,stars);S.best[G.n]=Math.max(S.best[G.n]||0,G.score);
  S.unlocked=Math.max(S.unlocked,Math.min(MAXLV,G.n+1));S.stats.score+=G.score;S.stats.won=(S.stats.won||0)+1;
  if(G.L.ch&&first)S.boosters.rainbow++;
@@ -1286,7 +1286,7 @@ function levelIntro(n){const L=getLevel(n);
   return `<div class="goal" style="display:inline-flex;margin:3px">${goalIcon(o)}<b>${txt}</b></div>`}).join('');
  const st=S.stars[n]||0;
  openModal(`<h2>${L.ch?'Challenge ':'Level '}${n}</h2><div class="stars" style="margin:0">${[0,1,2].map(i=>ICON.star(i<st).replace('<svg','<svg style="width:34px;height:34px;transform:none"')).join('')}</div>
- <p>${L.m} moves${L.ch?' · bonus prizes':''}</p>${st?'<p style="font-size:13px">Replaying earns coins: 20 plus 10 per star.</p>':''}<h3>Goals</h3><div>${goals}</div>${L.tip?`<p style="margin-top:10px;font-size:14px">Tip: ${L.tip}</p>`:''}
+ <p>${L.m} moves${L.ch?' · bonus prizes':''}</p>${st?'<p style="font-size:13px">Replaying pays half of a first clear.</p>':''}<h3>Goals</h3><div>${goals}</div>${L.tip?`<p style="margin-top:10px;font-size:14px">Tip: ${L.tip}</p>`:''}
  <div class="row"><button class="btn" data-a="play" data-n="${n}" style="font-size:26px;padding:10px 40px 14px">Play</button></div>`)}
 /* ---------- map ---------- */
 function updateTop(){tickLives();{const sp=$('#superPill');if(sp){sp.style.display=S.picks>0?'flex':'none';sp.textContent='★ Pick '+S.picks}}$('#coinPill').innerHTML=`${ICON.coin}<span>${S.coins}</span>`;$('#gCoin').innerHTML=`${ICON.coin}<span>${S.coins}</span>`;
