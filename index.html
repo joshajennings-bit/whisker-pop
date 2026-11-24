@@ -268,7 +268,7 @@ if(px<20&&sa)document.documentElement.style.setProperty('--sat','56px')}catch(e)
   <h1>Whisker<br><span>Pop!</span></h1>
   <p>Match cats. Rescue kittens. Collect them all.</p>
   <button class="btn" id="playBtn" style="font-size:30px;padding:12px 44px 16px">Play</button>
-  <p class="ver">v0.033</p>
+  <p class="ver">v0.034</p>
  </section>
 
  <section class="screen" id="map">
@@ -616,34 +616,68 @@ const SHAPES={
 const SH=['full','full','full','octagon','full','plus','full','octagon','cat','hourglass','tri','heart','full','ring','cat','plus','octagon','full','hourglass','heart','ring','tri','cat','plus'];
 const SHPOOL=['full','octagon','plus','cat','heart','hourglass','ring','tri'];
 function maskOf(n){return (SHAPES[n]||SHAPES.full).map(row=>[...row].map(ch=>ch==='#'))}
+
+const SHAPES2={
+ diamond:['...##...','..####..','.######.','########','########','.######.','..####..','...##...'],
+ cross:['...##...','...##...','...##...','########','########','...##...','...##...','...##...'],
+ funnel:['########','########','.######.','.######.','..####..','..####..','...##...','...##...'],
+ towers:['##....##','##....##','##....##','########','########','########','########','########'],
+ bridge:['###..###','###..###','###..###','########','########','###..###','###..###','###..###'],
+ stairs:['#.......','##......','###.....','####....','#####...','######..','#######.','########'],
+ stairsR:['.......#','......##','.....###','....####','...#####','..######','.#######','########'],
+ hole2:['########','##.##.##','##.##.##','########','########','##.##.##','##.##.##','########']};
+Object.assign(SHAPES,SHAPES2);
+const SHRATE={full:0,octagon:0,plus:1,cat:1,heart:1,tri:1,diamond:1,hourglass:2,ring:2,funnel:2,towers:2,bridge:2,stairs:2,stairsR:2,cross:3,hole2:3};
+/* difficulty 0..1.15: slow ramp from level 25 to ~285 with a sawtooth: every 10th level is a boss, the two after are breathers */
+function diffOf(n){const b=Math.max(0,Math.min(1,(n-24)/260)),p=n%10,w=p===0?.16:p===9?.08:(p===1||p===2)?-.12:0;return Math.max(0,Math.min(1.15,b+w))}
+function rawShape(n,att=0){const r=mulberry(n*104729+7+att*31),d=diffOf(n),max=1+Math.round(d*2.4),lo=Math.max(0,Math.round(d*2)-1);
+ const pool=Object.keys(SHRATE).filter(k=>SHRATE[k]<=max&&SHRATE[k]>=lo);return pool[Math.floor(r()*pool.length)]}
+function shapeFor(n){let s=rawShape(n);if(n>25&&s===rawShape(n-1))s=rawShape(n,1);return s}
+const GOALSETS={
+ A:[['score'],['cat'],['yarn'],['paw'],['box'],['rescue'],['fish'],['kitten'],['yarnball'],['make'],['cat','cat'],['yarn','fish']],
+ B:[['cat','cat'],['yarn','fish'],['paw','box'],['rescue','kitten'],['box','yarnball'],['make','score'],['chain','cat'],['yarn','kitten'],['rescue','cat'],['paw','yarnball'],['make','cat'],['box','fish']],
+ C:[['yarn','paw','cat'],['rescue','fish','kitten'],['box','yarn','make'],['score','chain','cat'],['box','paw','fish'],['rescue','yarn','chain'],['paw','kitten','make'],['box','rescue','yarnball'],['yarn','cat','cat']]};
+const LAYS=['rand','blocks2','diag','mirror','hpairs','vpairs','blocks2','diag'];
+const BOXPATS=['scatter','x','ring2','rows3','corners','checker','center','border'];
+function genLevel(n){
+ const r=mulberry(n*7919),d=diffOf(n),ch=n%5===0,boss=n%10===0,br=n%10===1||n%10===2;
+ const L={m:0,n:(d<.1||br)?5:6,ch:ch?1:0,o:[]};L.sh=shapeFor(n);
+ const tier=d<.3?'A':d<.62?'B':'C',set=GOALSETS[tier],base=Math.floor(n/3);
+ let pick=set[(n*5+base)%set.length];
+ if(boss&&tier!=='A')pick=GOALSETS.C[(n/10)%GOALSETS.C.length|0];
+ const sPS=['center','corners','x','bottom'],lPS=['checker','ring2','rows3','border'];
+ const P=()=>{const a=d<.35?sPS:d<.7?sPS.concat(lPS):lPS;return a[Math.floor(r()*a.length)]};
+ const used=new Set();let cats=0;
+ const addO=x=>{
+  if(x==='cat'){const t=BOARD[Math.floor(r()*L.n)];if(L.o.some(o=>o.k==='cat'&&o.t===t)){return addO('cat')}L.o.push({k:'cat',t,n:Math.round((20+d*28)*(pick.filter(y=>y==='cat').length>1?.7:1))});return}
+  if(used.has(x))return;used.add(x);
+  if(x==='score')L.o.push({k:'score',n:0});
+  else if(x==='yarn'||x==='paw'){const hp=x==='yarn'?(1+(r()<d?1:0)):1;(L.f=L.f||[]).push({k:x,hp,p:P()});if(d>.5)L.f.push({k:x,hp,p:P()});L.o.push({k:x})}
+  else if(x==='box'){L.b=L.b||{n:Math.round(6+d*8),hp:1+(d>.35&&r()<.7?1:0),kit:0,p:d<.2?'scatter':BOXPATS[Math.floor(r()*BOXPATS.length)]};L.o.push({k:'box'})}
+  else if(x==='rescue'){const q=Math.round(4+d*4);L.b=L.b&&L.b.n>=q?Object.assign(L.b,{kit:q}):{n:q+(d>.4?2:0),hp:1+(d>.35?1:0),kit:q,p:d<.2?'scatter':BOXPATS[Math.floor(r()*BOXPATS.length)]};L.o.push({k:'rescue'})}
+  else if(x==='make'){L.o.push({k:'make',n:Math.round(3+d*5)})}
+  else if(x==='chain'){L.o.push({k:'chain',n:Math.round(2+d*3)})}
+  else{const cnt=Math.round(2+d*4);(L.d=L.d||{})[x]=cnt;L.o.push({k:x,n:cnt})}};
+ pick.forEach(addO);
+ if(ch&&L.o.length<3){const extra=['rescue','fish','paw','make'].filter(x=>!used.has(x)&&!(x==='fish'&&used.has('kitten')))[0];if(extra)addO(extra)}
+ L.m=Math.round(31-d*10)+(L.o.length-1)*2+(ch?3:0)+(boss?1:0);
+ const sc=L.o.find(o=>o.k==='score');if(sc)sc.n=Math.round(L.m*(150+d*210)/100)*100;
+ if(L.b&&!L.o.find(o=>o.k==='rescue'))L.b.kit=0;
+ {const M=maskOf(L.sh),taken=new Set(),cells=p=>pattern(p,mulberry(1),1).filter(([rr,cc])=>M[rr][cc]&&!taken.has(rr*8+cc)),cnt=p=>cells(p).length;
+  (L.f||[]).forEach(f=>{if(cnt(f.p)<3){f.p=['bottom','center','x','checker','border','ring2','corners','rows3'].find(p=>cnt(p)>=3)||'bottom'}cells(f.p).forEach(([rr,cc])=>taken.add(rr*8+cc))})}
+ L.lay=LAYS[Math.floor(r()*LAYS.length)];
+ if(L.o.some(o=>o.k==='make'))L.tip='Match 4 or 5 in a row to make special cats.';
+ else if(L.o.some(o=>o.k==='chain'))L.tip='Chain reaction! Make cats fall into new matches on their own.';
+ return L}
 function getLevel(n){
  let L;
  if(n<=LV.length){L=JSON.parse(JSON.stringify(LV[n-1]));L.sh=SH[n-1]}
  else{
-  const r=mulberry(n*7919),k=n%8,ch=n%5===0,n5=r()<.5?5:6;
-  L={m:26+Math.floor(r()*8),n:n5,ch:ch?1:0,o:[]};L.sh=SHPOOL[Math.floor(r()*8)];
-  const pats=['center','checker','x','ring2','rows3','border','corners','bottom'];
-  const P=()=>pats[Math.floor(r()*pats.length)];
-  const cat=BOARD[Math.floor(r()*n5)];
-  const diff=Math.min(10,Math.floor((n-24)/12));
-  const kinds=[['score'],['cat','cat'],['yarn'],['paw','box'],['rescue'],['fish','kitten'],['yarn','paw'],['box','yarnball']][k];
-  const used=new Set();
-  const addO=x=>{if(used.has(x))return;used.add(x);
-   if(x==='score')L.o.push({k:'score',n:6000+n*60});
-   else if(x==='cat'){const t=BOARD[Math.floor(r()*n5)];L.o.push({k:'cat',t,n:24+diff*2})}
-   else if(x==='yarn'){(L.f=L.f||[]).push({k:'yarn',hp:1+(r()<.5?1:0),p:P()});L.o.push({k:'yarn'})}
-   else if(x==='paw'){(L.f=L.f||[]).push({k:'paw',hp:1,p:P()});L.o.push({k:'paw'})}
-   else if(x==='box'){L.b=L.b||{n:6+diff,hp:1+(r()<.5?1:0),kit:0};L.o.push({k:'box'})}
-   else if(x==='rescue'){const q=4+Math.floor(r()*3);L.b={n:q,hp:1+(r()<.5?1:0),kit:q};L.o.push({k:'rescue'})}
-   else{const cnt=2+Math.floor(r()*3);(L.d=L.d||{})[x]=cnt;L.o.push({k:x,n:cnt})}};
-  kinds.forEach(addO);
-  if(ch){['rescue','fish','paw'].filter(x=>!used.has(x)).slice(0,2).forEach(addO);L.m+=3}
-  if(diff>=3&&L.o.length<2&&!ch)addO('cat');
-  if(L.b&&!L.o.find(o=>o.k==='rescue')&&L.b.kit)L.b.kit=0;
+  L=genLevel(n);
  }
  const sc=L.o.find(o=>o.k==='score');
  if(sc){L.s=[sc.n,Math.round(sc.n*1.3),Math.round(sc.n*1.7)]}
- else L.s=[0,L.m*210,L.m*320];
+ else{const dd=n>24?diffOf(n):0;L.s=[0,Math.round(L.m*(200+dd*110)),Math.round(L.m*(300+dd*190))]}
  L.id=n;return L}
 const MILES={5:'Sunny Windowsill',10:'Yarn Basket',15:'Cardboard Castle',20:'Kitten Cafe',25:'Moonlit Rooftop'};
 const isChal=n=>n<=LV.length?!!LV[n-1].ch:(getLevel(n).ch);
@@ -710,7 +744,7 @@ function megaFx(){banner('MEGA KITTY!',1500,'#c42b6b');shake(10,500);sfx('mega')
  if(!S.gallery.mega){S.gallery.mega=1;save();setTimeout(()=>toast('New cat unlocked: Mega Kitty!'),900)}S.stats.mega++}
 function toast(t){const e=document.createElement('div');e.className='toast';e.textContent=t;$('#app').appendChild(e);setTimeout(()=>e.remove(),2300)}
 /* ---------- HUD ---------- */
-const GI={fish:ICON.fish,yarnball:ICON.yarn,yarn:yarnTangle(1),paw:`<div style="color:#ff8fb1;padding:4px">${ICON.paw}</div>`,box:ICON.box(1,false),rescue:ICON.box(1,true),kitten:null,score:ICON.star(true)};
+const GI={fish:ICON.fish,yarnball:ICON.yarn,yarn:yarnTangle(1),paw:`<div style="color:#ff8fb1;padding:4px">${ICON.paw}</div>`,box:ICON.box(1,false),rescue:ICON.box(1,true),kitten:null,score:ICON.star(true),make:catSVG('orange','laser'),chain:'<svg viewBox="0 0 64 64"><path d="M38 4L14 36h14l-6 24 28-34H34z" fill="#ffd23f" stroke="#c98200" stroke-width="3" stroke-linejoin="round"/></svg>'};
 function goalIcon(o){if(o.k==='cat')return catSVG(o.t);if(o.k==='kitten')return catSVG('kitten');return GI[o.k]}
 function drawGoals(){const g=$('#goals');g.innerHTML='';
  G.goals.forEach((o,i)=>{const d=document.createElement('div');d.className='goal';d.id='goal'+i;
@@ -856,11 +890,12 @@ async function doClear(set,creates,cascade,act){
  carlCheck();
  for(const cr of creates){const p=B[kr(cr.pos)][kc(cr.pos)];p.sp=cr.sp;if(cr.sp==='rainbow')p.t='mega';refresh(p);
   p.el.animate([{transform:`translate(${p.c*G.S}px,${p.r*G.S}px) scale(1.6)`},{transform:`translate(${p.c*G.S}px,${p.r*G.S}px) scale(1)`}],{duration:350,easing:'cubic-bezier(.2,1.6,.4,1)'});
-  burst(p.r,p.c,'#ffe680',12,1.3);sfx('make')}
+  burst(p.r,p.c,'#ffe680',12,1.3);sfx('make');G.goals.forEach((o,gi)=>{if(o.k==='make'){o.have++;updateGoals(gi)}})}
  const mult=1+.5*(cascade-1),pts=Math.round((cats*50+specials*120+Math.max(0,cats-3)*30)*mult);
  S.stats.cleared+=cats;
  if(pts){const cr=gone.length?gone[Math.floor(gone.length/2)]:[3,3];addScore(pts,cr[0],cr[1])}
  if(cats)sfx('match',cascade-1);
+ if(cascade===3)G.goals.forEach((o,gi)=>{if(o.k==='chain'){o.have++;updateGoals(gi)}});
  if(cascade>=2){if(false){const add=Math.min(10,50-(G.chainCoins||0));G.chainCoins=(G.chainCoins||0)+add;S.coins+=add;save();updateTop();floatText(2,3,'+'+add+' coins',24);sfx('coin')}
   await banner(comboWord(cascade),900);if(cascade%2===0&&Math.random()<.8)meow(0.9+Math.random()*.5)}
  await sleep(300)}
@@ -1153,18 +1188,34 @@ async function placeCarl(r0,c0){
  else{await resolve([],null)}
  carlCheck();await endTurn()}
 /* ---------- level flow ---------- */
+
+function layType(lay,r,c,k){switch(lay){
+ case 'blocks2':return ((r>>1)*3+(c>>1))%k;
+ case 'diag':return (r*2+c)%k;
+ case 'hpairs':return ((c>>1)+r*2)%k;
+ case 'vpairs':return ((r>>1)+c*2)%k;
+ default:return -1}}
+function designedFill(L,n){
+ const lay=L.lay,k=G.types.length,rr=mulberry(n*31+5),perm=G.types.map((_,i)=>i);
+ for(let i=perm.length-1;i>0;i--){const j=Math.floor(rr()*(i+1));[perm[i],perm[j]]=[perm[j],perm[i]]}
+ const tp=G.types,idx=Array.from({length:N},()=>Array(N).fill(-1));
+ if(lay==='mirror'){for(let r=0;r<N;r++)for(let c=0;c<4;c++){let t,tries=0;do{t=Math.floor(rr()*k);tries++}while(tries<40&&((c>=2&&idx[r][c-1]===t&&idx[r][c-2]===t)||(c===3&&idx[r][2]===t)||(r>=2&&idx[r-1][c]===t&&idx[r-2][c]===t)));idx[r][c]=t;idx[r][7-c]=t}}
+ else for(let r=0;r<N;r++)for(let c=0;c<N;c++)idx[r][c]=layType(lay,r,c,k);
+ for(let r=0;r<N;r++)for(let c=0;c<N;c++){if(!G.mask[r][c])continue;const q=idx[r][c];G.board[r][c]=newCat(tp[perm[q]])}
+ for(let i=0;i<60;i++){const gs=findGroups();if(!gs.length)break;gs.forEach(g=>{const ks=[...g.cells];const kk=ks[Math.floor(rr()*ks.length)],p=G.board[kr(kk)][kc(kk)];p.t=tp[Math.floor(rr()*k)]})}}
 function startLevel(n){hidePrompt();
  const L=getLevel(n);const rng=mulberry(Date.now()&0xffff);
  G={L,n,S:40,board:[...Array(N)].map(()=>Array(N).fill(null)),floor:[...Array(N)].map(()=>Array(N).fill(null)),moves:L.m,score:0,types:BOARD.slice(0,L.n),sel:null,busy:true,ended:false,goals:[],pending:{},armed:null,hammer:false,zoomed:false,startCoins:S.coins};
  G.spawn=spawnFn();G.mask=maskOf(L.sh);
  (L.f||[]).forEach(f=>pattern(f.p,rng).forEach(([r,c])=>{if(G.mask[r][c]&&!G.floor[r][c])G.floor[r][c]={k:f.k,hp:f.hp}}));
  const fcount=k=>G.floor.flat().filter(f=>f&&f.k===k).length;
- let boxCells=[];if(L.b){boxCells=pattern('scatter',rng,L.b.n*4).filter(([r,c])=>r>=1&&G.mask[r][c]).slice(0,L.b.n);L.b.n=boxCells.length;L.b.kit=Math.min(L.b.kit||0,boxCells.length)}
+ let boxCells=[];if(L.b){if(L.b.p&&L.b.p!=='scatter'){const all=pattern(L.b.p,rng).filter(([r,c])=>r>=1&&G.mask[r][c]&&!G.floor[r][c]);const m=Math.min(L.b.n,all.length),st=all.length/Math.max(1,m);for(let i=0;i<m;i++)boxCells.push(all[Math.floor(i*st)])}if(boxCells.length<Math.min(L.b.n,4)){boxCells=pattern('scatter',rng,L.b.n*4).filter(([r,c])=>r>=1&&G.mask[r][c]).slice(0,L.b.n)}L.b.n=boxCells.length;L.b.kit=Math.min(L.b.kit||0,boxCells.length)}
  L.o.forEach(o=>{const g={k:o.k,t:o.t,n:o.n,have:0};
   if(o.k==='yarn'||o.k==='paw')g.n=fcount(o.k);
   if(o.k==='box')g.n=L.b.n;if(o.k==='rescue')g.n=L.b.kit;G.goals.push(g)});
  // initial fill, no starting matches
- for(let r=0;r<N;r++)for(let c=0;c<N;c++){if(!G.mask[r][c])continue;let t,tries=0;do{t=G.types[rnd(G.types.length)];tries++}while(tries<30&&((c>=2&&G.board[r][c-1]?.t===t&&G.board[r][c-2]?.t===t)||(r>=2&&G.board[r-1][c]?.t===t&&G.board[r-2][c]?.t===t)));G.board[r][c]=newCat(t)}
+ if(L.lay&&L.lay!=='rand')designedFill(L,n);
+ else for(let r=0;r<N;r++)for(let c=0;c<N;c++){if(!G.mask[r][c])continue;let t,tries=0;do{t=G.types[rnd(G.types.length)];tries++}while(tries<30&&((c>=2&&G.board[r][c-1]?.t===t&&G.board[r][c-2]?.t===t)||(r>=2&&G.board[r-1][c]?.t===t&&G.board[r-2][c]?.t===t)));G.board[r][c]=newCat(t)}
  if(L.b){let i=0;for(const[r,c]of boxCells){G.board[r][c]={id:_id++,kind:'box',hp:L.b.hp,kit:i<(L.b.kit||0)};i++}}
  $('#pieces').innerHTML='';$('#fx').innerHTML='';
  for(let r=0;r<N;r++)for(let c=0;c<N;c++){if(G.board[r][c])mkEl(G.board[r][c])}
@@ -1282,7 +1333,7 @@ function outOfLives(){tickLives();const left=Math.max(0,S.regenAt-Date.now());co
  openModal(`<h2>Out of lives</h2><p>A new life arrives in <b>${m}:${String(s).padStart(2,'0')}</b>.</p><div style="font-size:60px;line-height:1;color:#ff5d73;width:70px;margin:0 auto">${ICON.heart}</div>
  <div class="row"><button class="btn green" data-a="refill">Refill · 100 <span style="display:inline-block;width:20px;vertical-align:-4px">${ICON.coin}</span></button><button class="btn ghost" data-a="close" style="color:var(--ink2);box-shadow:inset 0 0 0 2px #d8cbb3;background:#f4ead8">Wait</button></div>`)}
 function levelIntro(n){const L=getLevel(n);
- const M=maskOf(L.sh);const goals=L.o.map(o=>{const g={...o};let txt=o.n;if(o.k==='yarn'||o.k==='paw'){txt=(L.f||[]).filter(f=>f.k===o.k).reduce((a,f)=>a+pattern(f.p,mulberry(1),1).filter(([r,c])=>M[r][c]).length,0)}if(o.k==='box')txt=L.b.n;if(o.k==='rescue')txt=L.b.kit;if(o.k==='score')txt=o.n.toLocaleString();
+ const M=maskOf(L.sh);const goals=L.o.map(o=>{const g={...o};let txt=o.n;if(o.k==='yarn'||o.k==='paw'){{const u=new Set();(L.f||[]).filter(f=>f.k===o.k).forEach(f=>pattern(f.p,mulberry(1),1).forEach(([r,c])=>{if(M[r][c])u.add(r*8+c)}));txt=u.size}}if(o.k==='box')txt=L.b.n;if(o.k==='rescue')txt=L.b.kit;if(o.k==='score')txt=o.n.toLocaleString();
   return `<div class="goal" style="display:inline-flex;margin:3px">${goalIcon(o)}<b>${txt}</b></div>`}).join('');
  const st=S.stars[n]||0;
  openModal(`<h2>${L.ch?'Challenge ':'Level '}${n}</h2><div class="stars" style="margin:0">${[0,1,2].map(i=>ICON.star(i<st).replace('<svg','<svg style="width:34px;height:34px;transform:none"')).join('')}</div>
