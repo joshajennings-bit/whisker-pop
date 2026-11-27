@@ -934,7 +934,7 @@ async function resolve(swapKeys,first){
   if(first){first.cells.forEach(k=>set.add(k))}
   for(const g of groups){g.cells.forEach(k=>set.add(k));const s=specialFor(g,swapKeys);if(s&&!creates.some(x=>x.pos===s.pos))creates.push(s)}
   if(!set.size)break;cascade++;
-  if(cascade===8)G.legend=1;
+  if(cascade===8)G.legend=(G.legend||0)+1;
   S.stats.matches=(S.stats.matches||0)+groups.length;
   await doClear(set,creates,cascade,first?first.act:null);first=null;swapKeys=[];
   await settle();
@@ -1244,7 +1244,7 @@ async function win(){
  await sleep(500);
  const s=G.L.s,stars=1+(G.score>=s[1]?1:0)+(G.score>=s[2]?1:0),first=!S.stars[G.n];
  const full=20+stars*10+30+(G.L.ch?60:0),h=v=>first?v:Math.floor(v/2);
- const base=h(full),fin=h(Math.min(20,2*(G.finale||0))),leg=G.legend?h(25):0,nb=!first&&G.score>(S.best[G.n]||0)?10:0,coins=base+fin+leg+nb;
+ const base=h(full),fin=h(Math.min(20,2*(G.finale||0))),leg=G.legend?h(Math.min(65,25+10*(G.legend-1))):0,nb=!first&&G.score>(S.best[G.n]||0)?10:0,coins=base+fin+leg+nb;
  S.coins+=coins;S.stars[G.n]=Math.max(S.stars[G.n]||0,stars);S.best[G.n]=Math.max(S.best[G.n]||0,G.score);
  S.unlocked=Math.max(S.unlocked,Math.min(MAXLV,G.n+1));S.stats.score+=G.score;S.stats.won=(S.stats.won||0)+1;
  if(G.L.ch&&first)S.boosters.rainbow++;
@@ -1257,7 +1257,7 @@ async function win(){
  <div class="stat"><span>Score</span><span>${G.score.toLocaleString()}${best?' (best!)':''}</span></div>
  <div class="stat"><span>Level reward</span><span>+${base}</span></div>
  ${fin?`<div class="stat"><span>Finale bonus</span><span>+${fin}</span></div>`:''}
- ${leg?`<div class="stat"><span>Legendary cascade!</span><span>+${leg}</span></div>`:''}
+ ${leg?`<div class="stat"><span>Legendary cascade${G.legend>1?' x'+G.legend:''}!</span><span>+${leg}</span></div>`:''}
  ${nb?`<div class="stat"><span>New best score!</span><span>+${nb}</span></div>`:''}
  <div class="stat"><span>Coins earned</span><span><b>+${coins}</b></span></div>
  ${G.L.ch&&first?'<div class="stat"><span>Challenge prize</span><span>Rainbow Cat booster</span></div>':''}
